@@ -47,17 +47,14 @@ private[orientdb] class OrientDBWriter(orientDBWrapper: OrientDBDocumentWrapper,
         "name with the 'classname' parameter")
     }
     var cluster = params.clusterName
-    if (cluster.isEmpty) {
-      val schema = connection.getMetadata.getSchema
-      val currClass = schema.getClass(classname.get)
-      cluster = Some(connection.getClusterNameById(currClass.getDefaultClusterId))
-    }
 
     // Todo use Future
-    orientDBWrapper.delete(cluster.get, classname.get, null)
+    if (connection.getMetadata.getSchema.existsClass(classname.get)) {
+      orientDBWrapper.delete(null, classname.get, null)
 
-    val schema = connection.getMetadata.getSchema
-    schema.dropClass(classname.get)
+      val schema = connection.getMetadata.getSchema
+      schema.dropClass(classname.get)
+    }
   }
 
   private def doOrientDBLoad(connection: ODatabaseDocumentTx,

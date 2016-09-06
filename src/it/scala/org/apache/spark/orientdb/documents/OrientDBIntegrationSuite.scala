@@ -1,6 +1,7 @@
 package org.apache.spark.orientdb.documents
 
 import org.apache.spark.orientdb.TestUtils
+import org.apache.spark.sql.types.{StringType, StructField, StructType}
 import org.apache.spark.sql.{Row, SaveMode}
 
 class OrientDBIntegrationSuite extends IntegrationSuiteBase {
@@ -22,16 +23,9 @@ class OrientDBIntegrationSuite extends IntegrationSuiteBase {
       .format("org.apache.spark.orientdb.documents")
       .option("dburl", ORIENTDB_CONNECTION_URL)
       .option("user", ORIENTDB_USER).option("password", ORIENTDB_PASSWORD)
-      .option("class", test_table)
+      .option("class", test_table2)
       .mode(SaveMode.Overwrite)
       .save()
-  }
-
-  test("DefaultSource can load OrientDB data to a DataFrame") {
-    checkAnswer(
-      sqlContext.sql("select * from test_table__"),
-      TestUtils.expectedData
-    )
   }
 
   test("count() on DataFrame created from a OrientDB class") {
@@ -46,5 +40,23 @@ class OrientDBIntegrationSuite extends IntegrationSuiteBase {
       loadedDf.selectExpr("count(*)"),
       Seq(Row(5))
     )
+  }
+
+  test("count() on DataFrame created from a OrientDB query") {
+    val loadedDf = sqlContext.read
+      .format("org.apache.spark.orientdb.documents")
+      .option("dburl", ORIENTDB_CONNECTION_URL)
+      .option("user", ORIENTDB_USER)
+      .option("password", ORIENTDB_PASSWORD)
+      .option("query", s"select * from $test_table2 where teststring = 'asdf'")
+//      .schema(new StructType(Array(StructField("teststring", StringType))))
+      .load()
+
+    loadedDf.show()
+
+/*    checkAnswer(
+      loadedDf.selectExpr("count(*)"),
+      Seq(Row(1))
+    ) */
   }
 }

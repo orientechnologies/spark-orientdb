@@ -12,11 +12,8 @@ private[orientdb] object Parameters {
 
     if (!userParameters.contains("class") && !userParameters.contains("query")) {
       throw new IllegalArgumentException("You must specify Orient DB class name with 'class' " +
-        "parameter or a query with the 'query' parameter")
-    }
-
-    if (userParameters.contains("class") && userParameters.contains("query")) {
-      throw new IllegalArgumentException("You cannot specify both the 'class' and 'query' parameters at the same time.")
+        "parameter or a query with the 'query' parameter. If it is a 'query' you must define your own" +
+        " schema or specify orientdb 'class' name.")
     }
 
     if (!userParameters.contains("user") || !userParameters.contains("password")) {

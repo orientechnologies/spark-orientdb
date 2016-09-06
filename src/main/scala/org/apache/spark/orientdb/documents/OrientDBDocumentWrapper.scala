@@ -1,5 +1,7 @@
 package org.apache.spark.orientdb.documents
 
+import java.util.regex.Pattern
+
 import com.orientechnologies.orient.core.db.document.ODatabaseDocumentTx
 import com.orientechnologies.orient.core.metadata.schema.OType
 import com.orientechnologies.orient.core.record.impl.ODocument
@@ -77,13 +79,17 @@ class OrientDBDocumentWrapper extends Serializable {
     * @return
     */
   def read(cluster: String, classname: String, requiredColumns: Array[String],
-           filters: String): List[ODocument] = {
+           filters: String, query: String = null): List[ODocument] = {
     var documents: java.util.List[ODocument] = null
     val columns = requiredColumns.mkString(", ")
 
-    documents = connection.query(
-      new OSQLSynchQuery[ODocument]
-      (s"select $columns from $classname $filters"))
+    if (query == null) {
+      documents = connection.query(
+        new OSQLSynchQuery[ODocument]
+        (s"select $columns from $classname $filters"))
+    } else {
+      documents = connection.query(new OSQLSynchQuery[ODocument](query))
+    }
 
     documents.toList
   }

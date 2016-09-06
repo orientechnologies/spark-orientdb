@@ -55,15 +55,25 @@ private[orientdb] case class OrientDBRelation(
   override def buildScan(requiredColumns: Array[String], filters: Array[Filter]): RDD[Row] = {
     if (requiredColumns.isEmpty) {
       val whereClause = FilterPushdown.buildWhereClause(schema, filters)
-      val countQuery = s"select count(*) from $tableNameOrSubQuery $whereClause"
+      var countQuery = s"select count(*) from $tableNameOrSubQuery $whereClause"
+
+      if (params.query.isDefined) {
+        countQuery = tableNameOrSubQuery.drop(1).dropRight(1)
+      }
+
       log.info("count query")
       val connection = orientDBWrapper.getConnection(params)
 
       try {
         // todo use future
         val results = orientDBWrapper.genericQuery(countQuery)
-        if (results.nonEmpty) {
+        if (params.query.isEmpty && results.nonEmpty) {
           val numRows: Long = results.head.field("count")
+          val parallelism = sqlContext.getConf("spark.sql.shuffle.partitions", "200").toInt
+          val emptyRow = Row.empty
+          sqlContext.sparkContext.parallelize(1L to numRows, parallelism).map(_ => emptyRow)
+        } else if (params.query.isDefined) {
+          val numRows: Long = results.length
           val parallelism = sqlContext.getConf("spark.sql.shuffle.partitions", "200").toInt
           val emptyRow = Row.empty
           sqlContext.sparkContext.parallelize(1L to numRows, parallelism).map(_ => emptyRow)
@@ -74,18 +84,23 @@ private[orientdb] case class OrientDBRelation(
         connection.close()
       }
     } else {
-      val classname = params.className match {
-        case Some(className) => className
-        case None => throw new IllegalArgumentException("For save operations you must specify a OrientDB Class " +
-          "name with the 'classname' parameter")
-      }
-      val cluster = params.clusterName match {
-        case Some(clusterName) => clusterName
-        case None =>
-          val connection = orientDBWrapper.getConnection(params)
-          val schema = connection.getMetadata.getSchema
-          val currClass = schema.getClass(classname)
-          connection.getClusterNameById(currClass.getDefaultClusterId)
+      var classname: String = null
+      var cluster: String = null
+      if (params.query.isEmpty) {
+        classname = params.className match {
+          case Some(className) => className
+          case None =>
+            throw new IllegalArgumentException("For save operations you must specify a OrientDB Class " +
+              "name with the 'classname' parameter")
+        }
+        cluster = params.clusterName match {
+          case Some(clusterName) => clusterName
+          case None =>
+            val connection = orientDBWrapper.getConnection(params)
+            val schema = connection.getMetadata.getSchema
+            val currClass = schema.getClass(classname)
+            connection.getClusterNameById(currClass.getDefaultClusterId)
+        }
       }
 
       val filterStr = FilterPushdown.buildWhereClause(schema, filters)
@@ -93,20 +108,32 @@ private[orientdb] case class OrientDBRelation(
       var oDocuments: List[ODocument] = List()
       try {
         // todo use Future
-        oDocuments = orientDBWrapper.read(cluster, classname, requiredColumns, filterStr)
+        if (params.query.isEmpty) {
+          oDocuments = orientDBWrapper.read(cluster, classname, requiredColumns, filterStr)
+        } else {
+          oDocuments = orientDBWrapper
+            .read(null, null, requiredColumns, filterStr, params.query.get)
+        }
       } finally {
         connection.close()
       }
 
-      val prunedSchema = pruneSchema(schema, requiredColumns)
-      sqlContext.sparkContext.makeRDD(
-        oDocuments.map(oDocument => Conversions.convertODocumentsToRows(oDocument, prunedSchema))
-      )
+      if (params.query.isEmpty) {
+        val prunedSchema = pruneSchema(schema, requiredColumns)
+        sqlContext.sparkContext.makeRDD(
+          oDocuments.map(oDocument => Conversions.convertODocumentsToRows(oDocument, prunedSchema))
+        )
+      } else {
+        assert(oDocuments.nonEmpty)
+        val prunedSchema = pruneSchema(schema, oDocuments.head.fieldNames())
+        sqlContext.sparkContext.makeRDD(
+          oDocuments.map(oDocument => Conversions.convertODocumentsToRows(oDocument, prunedSchema))
+        )
+      }
     }
   }
 
   private def pruneSchema(schema: StructType, columns: Array[String]): StructType = {
-    val fieldMap = Map(schema.fields.map(x => x.name -> x): _*)
-    new StructType(columns.map(name => fieldMap(name)))
+    new StructType(schema.fields.filter(p => columns.contains(p.name)))
   }
 }
