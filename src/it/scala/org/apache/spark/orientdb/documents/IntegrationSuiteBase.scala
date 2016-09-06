@@ -3,8 +3,7 @@ package org.apache.spark.orientdb.documents
 import com.orientechnologies.orient.core.db.document.ODatabaseDocumentTx
 import org.apache.spark.SparkContext
 import org.apache.spark.orientdb.QueryTest
-import org.apache.spark.sql.{DataFrame, SQLContext, SaveMode}
-import org.apache.spark.sql.hive.test.TestHiveContext
+import org.apache.spark.sql.{DataFrame, Row, SQLContext, SaveMode}
 import org.apache.spark.sql.types.StructType
 import org.scalatest.{BeforeAndAfterAll, BeforeAndAfterEach, Matchers}
 
@@ -68,6 +67,7 @@ trait IntegrationSuiteBase
         .option("dburl", ORIENTDB_CONNECTION_URL)
         .option("user", ORIENTDB_USER)
         .option("password", ORIENTDB_PASSWORD)
+        .option("class", className)
         .mode(saveMode)
         .save()
 
@@ -80,6 +80,7 @@ trait IntegrationSuiteBase
                       .option("dburl", ORIENTDB_CONNECTION_URL)
                       .option("user", ORIENTDB_USER)
                       .option("password", ORIENTDB_PASSWORD)
+                      .option("class", className)
                       .load()
       assert(loadedDf.schema === expectedSchemaAfterLoad.getOrElse(df.schema))
       checkAnswer(loadedDf, df.collect())

@@ -18,6 +18,12 @@ class DefaultSource(orientDBWrapper: OrientDBDocumentWrapper,
 
   override def createRelation(sqlContext: SQLContext, parameters: Map[String, String]): BaseRelation = {
     val params = Parameters.mergeParameters(parameters)
+
+    if (params.query.isDefined && params.className.isEmpty) {
+      throw new IllegalArgumentException("Along with the 'query' parameter you must specify either 'class' parameter or"+
+      " user-defined schema")
+    }
+
     OrientDBRelation(orientDBWrapper, orientDBClientFactory, params, None)(sqlContext)
   }
 

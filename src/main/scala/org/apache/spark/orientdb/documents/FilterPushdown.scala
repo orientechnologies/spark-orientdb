@@ -28,9 +28,9 @@ private[orientdb] object FilterPushdown {
     def buildComparison(attr: String, value: Any, comparisonOp: String): Option[String] = {
       getTypeForAttribute(schema, attr).map { dataType =>
         val sqlEscapedValue: String = dataType match {
-          case StringType => s"\\'${value.toString.replace("'", "\\'\\'")}\\'"
-          case DateType => s"\\'${value.asInstanceOf[Date]}\\'"
-          case TimestampType => s"\\'${value.asInstanceOf[Timestamp]}\\'"
+          case StringType => s"'${value.toString.replace("'", "\\'\\'")}'"
+          case DateType => s"'${value.asInstanceOf[Date]}'"
+          case TimestampType => s"'${value.asInstanceOf[Timestamp]}'"
           case _ => value.toString
         }
         s"""$attr $comparisonOp $sqlEscapedValue"""

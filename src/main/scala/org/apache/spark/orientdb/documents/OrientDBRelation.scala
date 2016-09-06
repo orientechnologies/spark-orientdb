@@ -125,7 +125,7 @@ private[orientdb] case class OrientDBRelation(
         )
       } else {
         assert(oDocuments.nonEmpty)
-        val prunedSchema = pruneSchema(schema, oDocuments.head.fieldNames())
+        val prunedSchema = pruneSchema(schema, chooseRecordForSchema(oDocuments).fieldNames())
         sqlContext.sparkContext.makeRDD(
           oDocuments.map(oDocument => Conversions.convertODocumentsToRows(oDocument, prunedSchema))
         )
@@ -135,5 +135,16 @@ private[orientdb] case class OrientDBRelation(
 
   private def pruneSchema(schema: StructType, columns: Array[String]): StructType = {
     new StructType(schema.fields.filter(p => columns.contains(p.name)))
+  }
+
+  private def chooseRecordForSchema(oDocuments: List[ODocument]): ODocument = {
+    var maxLen = -1
+    var idx: ODocument = null
+    oDocuments.foreach(oDocument =>
+      if (maxLen < oDocument.fieldNames().length) {
+        idx = oDocument
+        maxLen = oDocument.fieldNames().length
+      })
+    idx
   }
 }

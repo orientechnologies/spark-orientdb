@@ -88,7 +88,37 @@ class OrientDBDocumentWrapper extends Serializable {
         new OSQLSynchQuery[ODocument]
         (s"select $columns from $classname $filters"))
     } else {
-      documents = connection.query(new OSQLSynchQuery[ODocument](query))
+      var queryStr = ""
+
+      if (filters != "") {
+        if (query.contains("WHERE ")) {
+          val parts = query.split("WHERE ")
+
+          if ( parts.size > 1) {
+            val firstpart = parts(0)
+            val secondpart = parts(1)
+
+            queryStr = s"$firstpart $filters and $secondpart"
+          } else {
+            queryStr = s"$query $filters"
+          }
+        } else if (query.contains("where ")) {
+          val parts = query.split("where ")
+
+          if ( parts.size > 1) {
+            val firstpart = parts(0)
+            val secondpart = parts(1)
+
+            queryStr = s"$firstpart $filters and $secondpart"
+          } else {
+            queryStr = s"$query $filters"
+          }
+        } else {
+          queryStr = s"$query $filters"
+        }
+      } else queryStr = query
+      println(queryStr)
+      documents = connection.query(new OSQLSynchQuery[ODocument](queryStr))
     }
 
     documents.toList
