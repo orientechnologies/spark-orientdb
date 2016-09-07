@@ -1,31 +1,60 @@
 package org.apache.spark.orientdb.documents
 
-import com.orientechnologies.orient.core.db.ODatabase
 import com.orientechnologies.orient.core.db.document.ODatabaseDocumentTx
-import com.orientechnologies.orient.core.record.ORecord
 import com.orientechnologies.orient.core.record.impl.ODocument
-import com.orientechnologies.orient.core.sql.query.OSQLSynchQuery
-import com.orientechnologies.orient.core.tx.OTransaction.TXTYPE
+import org.apache.spark.orientdb.documents.Parameters.MergedParameters
+import org.apache.spark.sql.types.StructType
 import org.mockito.Matchers._
 import org.mockito.Mockito._
+import org.mockito.invocation.InvocationOnMock
+import org.mockito.stubbing.Answer
 
-class MockOrientDBDocument {
-/*  val documentWrapper: OrientDBDocumentWrapper = spy(new OrientDBDocumentWrapper(createMockConnection()))
+class MockOrientDBDocument(existingTablesAndSchemas: Map[String, StructType],
+                           oDocuments: List[ODocument]) {
+  val documentWrapper: OrientDBDocumentWrapper = spy(new OrientDBDocumentWrapper())
 
-  private def createMockConnection(): ODatabaseDocumentTx = {
-    val database = mock(classOf[ODatabase[ORecord]], RETURNS_SMART_NULLS)
-    val record = mock(classOf[ORecord], RETURNS_SMART_NULLS)
-    val connection = mock(classOf[ODatabaseDocumentTx], RETURNS_SMART_NULLS)
-    val documents = new java.util.ArrayList[ODocument]()
+  doAnswer(new Answer[ODatabaseDocumentTx] {
+    override def answer(invocationOnMock: InvocationOnMock): ODatabaseDocumentTx = {
+      mock(classOf[ODatabaseDocumentTx], RETURNS_SMART_NULLS)
+    }
+  }).when(documentWrapper).getConnection(any(classOf[MergedParameters]))
 
-    when(connection.begin(TXTYPE.OPTIMISTIC)).thenReturn(connection)
-    when(connection.commit()).thenReturn(database)
-    when(connection.rollback()).thenReturn(database)
-    when(connection.existsCluster(any[String])).thenReturn(false)
-    when(connection.save(any[ODocument], any[String])).thenReturn(record)
-    when(connection.query(any[OSQLSynchQuery[ODocument]])).thenReturn(documents)
-    when(connection.delete(any[ODocument])).thenReturn(connection)
+  doAnswer(new Answer[Boolean] {
+    override def answer(invocationOnMock: InvocationOnMock): Boolean = {
+      existingTablesAndSchemas.contains(invocationOnMock.getArguments()(1).asInstanceOf[String])
+    }
+  }).when(documentWrapper).doesClassExists(any(classOf[String]))
 
-    connection
-  } */
+  doAnswer(new Answer[Boolean] {
+    override def answer(invocationOnMock: InvocationOnMock): Boolean = {
+      true
+    }
+  }).when(documentWrapper).create(any(classOf[String]), any(classOf[String]),
+    any(classOf[ODocument]))
+
+  doAnswer(new Answer[List[ODocument]] {
+    override def answer(invocationOnMock: InvocationOnMock): List[ODocument] = {
+      oDocuments
+    }
+  }).when(documentWrapper).read(any(classOf[String]), any(classOf[String]), any(classOf[Array[String]]),
+    any(classOf[String]), any(classOf[String]))
+
+  doAnswer(new Answer[Boolean] {
+    override def answer(invocationOnMock: InvocationOnMock): Boolean = {
+      true
+    }
+  }).when(documentWrapper).delete(any(classOf[String]), any(classOf[String]),
+    any(classOf[Map[String, Tuple2[String, String]]]))
+
+  doAnswer(new Answer[StructType] {
+    override def answer(invocationOnMock: InvocationOnMock): StructType = {
+      existingTablesAndSchemas.get(invocationOnMock.getArguments()(1).asInstanceOf[String]).get
+    }
+  }).when(documentWrapper).resolveTable(any(classOf[String]), any(classOf[String]))
+
+  doAnswer(new Answer[List[ODocument]] {
+    override def answer(invocationOnMock: InvocationOnMock): List[ODocument] = {
+      oDocuments
+    }
+  }).when(documentWrapper).genericQuery(any(classOf[String]))
 }

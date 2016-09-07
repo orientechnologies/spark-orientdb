@@ -109,7 +109,7 @@ private[orientdb] case class OrientDBRelation(
       try {
         // todo use Future
         if (params.query.isEmpty) {
-          oDocuments = orientDBWrapper.read(cluster, classname, requiredColumns, filterStr)
+          oDocuments = orientDBWrapper.read(cluster, classname, requiredColumns, filterStr, null)
         } else {
           oDocuments = orientDBWrapper
             .read(null, null, requiredColumns, filterStr, params.query.get)
