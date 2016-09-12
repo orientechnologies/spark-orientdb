@@ -70,7 +70,6 @@ class OrientDBDocumentWrapper extends Serializable {
 
   /**
     * Read API
-    * @todo support filters & other sql pushdowns
     * @param cluster cluster name in OrientDB
     * @param classname class name in OrientDB
     * @param filters filters the no. of records retrieved
