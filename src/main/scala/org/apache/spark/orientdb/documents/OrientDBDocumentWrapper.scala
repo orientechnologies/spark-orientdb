@@ -1,7 +1,5 @@
 package org.apache.spark.orientdb.documents
 
-import java.util.regex.Pattern
-
 import com.orientechnologies.orient.core.db.document.ODatabaseDocumentTx
 import com.orientechnologies.orient.core.metadata.schema.OType
 import com.orientechnologies.orient.core.record.impl.ODocument

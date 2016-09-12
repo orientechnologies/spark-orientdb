@@ -9,11 +9,19 @@
     <version>1.0-SNAPSHOT</version>
 
     <properties>
-        <scala.version>2.11.8</scala.version>
-        <scala.binary.version>2.11</scala.binary.version>
+        <scala.version>2.10.5</scala.version>
+        <scala.binary.version>2.10</scala.binary.version>
         <spark.version>1.6.1</spark.version>
         <orientdb.graphdb.version>2.2.6</orientdb.graphdb.version>
     </properties>
+
+    <repositories>
+        <repository>
+            <id>SparkPackagesRepo</id>
+            <name>SparkPackagesRepo</name>
+            <url>http://dl.bintray.com/spark-packages/maven</url>
+        </repository>
+    </repositories>
 
     <dependencies>
         <dependency>
@@ -28,7 +36,7 @@
         </dependency>
         <dependency>
             <groupId>org.scalatest</groupId>
-            <artifactId>scalatest_2.11</artifactId>
+            <artifactId>scalatest_${scala.binary.version}</artifactId>
             <version>3.0.0</version>
             <scope>test</scope>
         </dependency>
@@ -52,6 +60,11 @@
             <groupId>org.apache.spark</groupId>
             <artifactId>spark-hive_${scala.binary.version}</artifactId>
             <version>${spark.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>graphframes</groupId>
+            <artifactId>graphframes</artifactId>
+            <version>0.2.0-spark1.6-s_${scala.binary.version}</version>
         </dependency>
     </dependencies>
 

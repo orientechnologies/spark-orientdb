@@ -1,6 +1,5 @@
 package org.apache.spark.orientdb.documents
 
-import org.apache.spark.orientdb._
 import org.apache.spark.sql.sources.{BaseRelation, CreatableRelationProvider, RelationProvider, SchemaRelationProvider}
 import org.apache.spark.sql.types.StructType
 import org.apache.spark.sql.{DataFrame, SQLContext, SaveMode}
