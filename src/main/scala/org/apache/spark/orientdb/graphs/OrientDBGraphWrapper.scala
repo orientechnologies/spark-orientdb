@@ -1,5 +1,6 @@
 package org.apache.spark.orientdb.graphs
 
+import com.google.common.collect.Lists
 import com.orientechnologies.orient.core.metadata.schema.OType
 import com.orientechnologies.orient.core.sql.OCommandSQL
 import com.tinkerpop.blueprints.{Edge, Vertex}
@@ -67,11 +68,13 @@ class OrientDBGraphVertexWrapper extends OrientDBGraphWrapper {
     * Create API
     * @param vertexType vertex Type in OrientDB graph
     */
-  def create(vertexType: String): Boolean = {
+  def create(vertexType: String, properties: Map[String, Object]): Boolean = {
     try {
-      val vertex = connection.addVertex(s"class:$vertexType", null)
-      if (vertex != null)
+      val vertex = connection.addVertex(s"$vertexType", null)
+      if (vertex != null) {
+        properties.foreach(property => vertex.setProperty(property._1, property._2))
         true
+      }
       else false
     } catch {
       case e: Exception => throw new RuntimeException(s"An exception was thrown: ${e.getMessage}")
@@ -91,7 +94,9 @@ class OrientDBGraphVertexWrapper extends OrientDBGraphWrapper {
     val columns = requiredProperties.mkString(", ")
 
     if (query == null) {
-      vertices = connection.command(new OCommandSQL(s"select $columns from $vertexType $filters")).execute()
+      vertices = Lists.newArrayList(
+        connection.command(new OCommandSQL(s"select $columns from $vertexType $filters"))
+          .execute().asInstanceOf[java.lang.Iterable[Vertex]])
     } else {
       var queryStr = ""
 
@@ -125,7 +130,9 @@ class OrientDBGraphVertexWrapper extends OrientDBGraphWrapper {
         queryStr = query
       }
       println(queryStr)
-      vertices = connection.command(new OCommandSQL(queryStr)).execute()
+      vertices = Lists.newArrayList[Vertex](
+        connection.command(new OCommandSQL(queryStr))
+          .execute().asInstanceOf[java.lang.Iterable[Vertex]])
     }
     vertices.toList
   }
@@ -135,9 +142,13 @@ class OrientDBGraphVertexWrapper extends OrientDBGraphWrapper {
     * @param vertexTypes vertex type names in Orient DB graph
     * @return
     */
-  def bulkCreate(vertexTypes: List[String]): Boolean = {
+  def bulkCreate(vertexTypes: List[String], properties: List[Map[String, Object]]): Boolean = {
     try {
-      vertexTypes.foreach(vertexType => create(vertexType))
+      var count = 0
+      vertexTypes.foreach(vertexType => {
+        create(vertexType, properties(count))
+        count += 1
+      })
       true
     } catch {
       case e: Exception => throw new RuntimeException(s"An exception was thrown: ${e.getMessage}")
@@ -169,11 +180,13 @@ class OrientDBGraphVertexWrapper extends OrientDBGraphWrapper {
       var verticesToBeDeleted: java.util.List[Vertex] = null
 
       if (filterStr != "") {
-        verticesToBeDeleted = connection
-          .command(new OCommandSQL(s"select * from $vertexType where $filterStr")).execute()
+        verticesToBeDeleted = Lists.newArrayList[Vertex](connection
+          .command(new OCommandSQL(s"select * from $vertexType where $filterStr"))
+          .execute().asInstanceOf[java.lang.Iterable[Vertex]])
       } else {
-        verticesToBeDeleted = connection
-          .command(new OCommandSQL(s"select * from $vertexType")).execute()
+        verticesToBeDeleted = Lists.newArrayList[Vertex](connection
+          .command(new OCommandSQL(s"select * from $vertexType"))
+          .execute().asInstanceOf[java.lang.Iterable[Vertex]])
       }
 
       verticesToBeDeleted.foreach(vertexToBeDeleted => {
@@ -220,8 +233,8 @@ class OrientDBGraphVertexWrapper extends OrientDBGraphWrapper {
     * execute generic query on OrientDB Graph vertices
     */
   def genericQuery(query: String): List[Vertex] = {
-    val vertices: java.util.List[Vertex] = connection.command(
-      new OCommandSQL(query)).execute()
+    val vertices: java.util.List[Vertex] = Lists.newArrayList[Vertex](connection.command(
+      new OCommandSQL(query)).execute().asInstanceOf[java.lang.Iterable[Vertex]])
     vertices.toList
   }
 }
@@ -242,12 +255,17 @@ class OrientDBGraphEdgeWrapper extends OrientDBGraphWrapper {
     * Create API
     * @param edgeType edge Type in OrientDB graph
     */
-  def create(edgeType: String, inVertex: Vertex, outVertex: Vertex): Boolean = {
+  def create(edgeType: String, inVertex: Vertex,
+             outVertex: Vertex, properties: Map[String, Object]): Boolean = {
     try {
       val edge = connection.addEdge(null, inVertex, outVertex, edgeType)
 
       if (edge == null) false
-      else true
+      else {
+        properties.foreach(property =>
+          edge.setProperty(property._1, property._2))
+        true
+      }
     } catch {
       case e: Exception => throw new RuntimeException(s"An exception was thrown: ${e.getMessage}")
     }
@@ -266,7 +284,9 @@ class OrientDBGraphEdgeWrapper extends OrientDBGraphWrapper {
     val columns = requiredProperties.mkString(", ")
 
     if (query == null) {
-      edges = connection.command(new OCommandSQL(s"select $columns from $edgeType $filters")).execute()
+      edges = Lists.newArrayList(
+        connection.command(new OCommandSQL(s"select * from $edgeType $filters"))
+          .execute().asInstanceOf[java.lang.Iterable[Edge]])
     } else {
       var queryStr = ""
 
@@ -300,7 +320,9 @@ class OrientDBGraphEdgeWrapper extends OrientDBGraphWrapper {
         queryStr = query
       }
       println(queryStr)
-      edges = connection.command(new OCommandSQL(queryStr)).execute()
+      edges = Lists.newArrayList(
+        connection.command(new OCommandSQL(queryStr))
+          .execute().asInstanceOf[java.lang.Iterable[Edge]])
     }
     edges.toList
   }
@@ -311,9 +333,15 @@ class OrientDBGraphEdgeWrapper extends OrientDBGraphWrapper {
     *                  in the format Map((edgeType, (inVertex, outVertex)))
     * @return
     */
-  def bulkCreate(edgeTypes: Map[String, Tuple2[Vertex, Vertex]]): Boolean = {
+  def bulkCreate(edgeTypes: Map[String, Tuple2[Vertex, Vertex]],
+                 properties: List[Map[String, Object]]): Boolean = {
     try {
-      edgeTypes.foreach(edgeType => create(edgeType._1, edgeType._2._1, edgeType._2._1))
+      var count = 0
+      edgeTypes.foreach(edgeType => {
+        create(edgeType._1, edgeType._2._1,
+          edgeType._2._1, properties(count))
+        count += 1
+      })
       true
     } catch {
       case e: Exception => throw new RuntimeException(s"An exception was thrown: ${e.getMessage}")
@@ -345,11 +373,15 @@ class OrientDBGraphEdgeWrapper extends OrientDBGraphWrapper {
       var edgesToBeDeleted: java.util.List[Edge] = null
 
       if (filterStr != "") {
-        edgesToBeDeleted = connection.command(new OCommandSQL(
-        s"select * from $edgeType where $filterStr")).execute()
+        edgesToBeDeleted = Lists.newArrayList(
+          connection.command(new OCommandSQL(
+            s"select * from $edgeType where $filterStr"))
+            .execute().asInstanceOf[java.lang.Iterable[Edge]])
       } else {
-        edgesToBeDeleted = connection.command(new OCommandSQL(
+        edgesToBeDeleted = Lists.newArrayList(
+          connection.command(new OCommandSQL(
         s"select * from $edgeType")).execute()
+            .asInstanceOf[java.lang.Iterable[Edge]])
       }
 
       edgesToBeDeleted.foreach(edgeToBeDeleted => {
@@ -396,8 +428,8 @@ class OrientDBGraphEdgeWrapper extends OrientDBGraphWrapper {
     * execute generic query on OrientDB Graph edges
     */
   def genericQuery(query: String): List[Edge] = {
-    val edges: java.util.List[Edge] = connection.command(
-      new OCommandSQL(query)).execute()
+    val edges: java.util.List[Edge] = Lists.newArrayList(connection.command(
+      new OCommandSQL(query)).execute().asInstanceOf[java.lang.Iterable[Edge]])
     edges.toList
   }
 }
