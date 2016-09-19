@@ -84,8 +84,8 @@ private[orientdb] class OrientDBWriter(orientDBWrapper: OrientDBDocumentWrapper,
     // load data into Orient DB
     try {
       data.foreachPartition(rows => {
-        val connection = new ODatabaseDocumentTx("remote:127.0.0.1:2424/GratefulDeadConcerts")
-        connection.open("root", "root")
+        val connection = new ODatabaseDocumentTx(params.dbUrl.get)
+        connection.open(params.credentials.get._1, params.credentials.get._2)
 
         while (rows.hasNext) {
           val row = rows.next()

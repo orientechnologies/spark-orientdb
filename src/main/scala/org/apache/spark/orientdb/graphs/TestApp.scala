@@ -4,6 +4,9 @@ import com.orientechnologies.orient.core.metadata.schema.OType
 import com.orientechnologies.orient.core.sql.OCommandSQL
 import com.tinkerpop.blueprints.Edge
 import com.tinkerpop.blueprints.impls.orient.OrientGraphFactory
+import org.apache.spark.sql.types.{IntegerType, StructField, StructType}
+import org.apache.spark.sql.{Row, SQLContext, SaveMode}
+import org.apache.spark.{SparkConf, SparkContext}
 
 object TestApp extends App {
   val graphFactory = new OrientGraphFactory("remote:127.0.0.1:2424/GratefulDeadConcerts",
@@ -35,4 +38,27 @@ object TestApp extends App {
     val data = iterator.next()
     println()
   }
+}
+
+object TestApp1 extends App {
+  val credentials = new OrientDBCredentials {
+    dbUrl = "remote:127.0.0.1:2424/GratefulDeadConcerts"
+    username = "root"
+    password = "root"
+  }
+  val wrapper = new OrientDBGraphVertexWrapper()
+  val writer = new OrientDBVertexWriter(wrapper,
+    credentials => new OrientDBClientFactory(credentials))
+
+  val conf = new SparkConf().setAppName("TestApp1").setMaster("local[*]")
+  val sc = new SparkContext(conf)
+  val sqlContext = new SQLContext(sc)
+
+  val df = sqlContext.createDataFrame(sc.parallelize(Seq(Row(1))),
+    StructType(StructField("a", IntegerType) :: Nil))
+
+  val parameters = Map("dburl" -> "remote:127.0.0.1:2424/GratefulDeadConcerts", "user" -> "root",
+                    "password" -> "root", "vertexType" -> "vclass10")
+
+  writer.saveToOrientDB(df, SaveMode.Overwrite, Parameters.mergeParameters(parameters))
 }

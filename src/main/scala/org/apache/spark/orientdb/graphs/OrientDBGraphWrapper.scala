@@ -52,6 +52,12 @@ class OrientDBGraphWrapper extends Serializable {
     }
     dataType
   }
+
+  def close(): Unit = {
+    if (connectionPool.nonEmpty) {
+      connectionPool.get.close()
+    }
+  }
 }
 
 class OrientDBGraphVertexWrapper extends OrientDBGraphWrapper {
