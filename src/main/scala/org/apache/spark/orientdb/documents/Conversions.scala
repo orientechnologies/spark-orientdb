@@ -5,7 +5,7 @@ import java.text.SimpleDateFormat
 
 import com.orientechnologies.orient.core.metadata.schema.OType
 import com.orientechnologies.orient.core.record.impl.ODocument
-import com.tinkerpop.blueprints.Vertex
+import com.tinkerpop.blueprints.{Edge, Vertex}
 import org.apache.spark.sql.Row
 import org.apache.spark.sql.types._
 
@@ -133,6 +133,25 @@ private[orientdb] object Conversions {
     while (i < schema.length) {
       if (fieldNames.contains(schema.fields(i).name)) {
         val value = vertex.getProperty(schema.fields(i).name)
+
+        converted(i) = orientDBDTtoSparkDT(schema.fields(i).dataType, value.toString)
+      } else {
+        converted(i) = null
+      }
+      i = i + 1
+    }
+
+    Row.fromSeq(converted)
+  }
+
+  def convertEdgesToRows(edge: Edge, schema: StructType): Row = {
+    val converted: scala.collection.mutable.IndexedSeq[Any] = mutable.IndexedSeq.fill(schema.length)(null)
+    val fieldNames = edge.getPropertyKeys
+
+    var i = 0
+    while (i < schema.length) {
+      if (fieldNames.contains(schema.fields(i).name)) {
+        val value = edge.getProperty(schema.fields(i).name)
 
         converted(i) = orientDBDTtoSparkDT(schema.fields(i).dataType, value.toString)
       } else {
