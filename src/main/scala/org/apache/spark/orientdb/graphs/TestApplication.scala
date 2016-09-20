@@ -17,8 +17,9 @@ object TestApplication extends App {
   val testRequiredProps = Array("id1", "key1", "value", "test")
 
   assert(getConnectionTest() != null)
+  genericQuery(s" select count(*) from $testVertexType")
 
-  if (getConnectionTest().getVertexType(testVertexType) == null) {
+/*  if (getConnectionTest().getVertexType(testVertexType) == null) {
     getConnectionTest().createVertexType(testVertexType)
 
     val gotVertexType = getConnectionTest().getVertexType(testVertexType)
@@ -34,7 +35,7 @@ object TestApplication extends App {
     "value" -> "World", "test" -> "Test"))))
   assert(delete(testVertexType, Map("id1" -> (" = ", "2"))))
   resolveTable(testVertexType)
-  genericQuery(s" select * from $testVertexType")
+  genericQuery(s" select * from $testVertexType") */
 
   def convertParams(): MergedParameters = {
     Parameters.mergeParameters(parameters)
@@ -78,6 +79,8 @@ object TestApplication extends App {
   }
 
   def genericQuery(query: String): Unit = {
+    val count = graphVertexWrapper.genericQuery(query)
+    println(count.head.getProperty[Long]("count"))
     println(graphVertexWrapper.genericQuery(query).length)
   }
 
