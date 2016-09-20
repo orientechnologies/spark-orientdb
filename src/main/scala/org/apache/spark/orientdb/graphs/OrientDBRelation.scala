@@ -88,7 +88,7 @@ private[orientdb] case class OrientDBVertexRelation(
           case Some(vertexType) => vertexType
           case None =>
             throw new IllegalArgumentException("For save operations you must specify a OrientDB Graph" +
-              " Vertex type name with the 'vertexType' parameter")
+              " Vertex type name with the 'vertextype' parameter")
         }
       }
 
@@ -107,14 +107,14 @@ private[orientdb] case class OrientDBVertexRelation(
       }
 
       if (params.query.isEmpty) {
-        val prunedSchema = pruneSchema(schema, requiredColumns)
+        val prunedSchema = pruneSchema(schema, Array("id") ++ requiredColumns)
         sqlContext.sparkContext.makeRDD(
           oVertices.map(vertex => Conversions.convertVerticesToRows(vertex, prunedSchema))
         )
       } else {
         assert(oVertices.nonEmpty)
         val propKeysArray = new Array[String](chooseRecordForSchema(oVertices).getPropertyKeys.size())
-        val prunedSchema = pruneSchema(schema, chooseRecordForSchema(oVertices)
+        val prunedSchema = pruneSchema(schema, Array("id") ++ chooseRecordForSchema(oVertices)
           .getPropertyKeys.toArray[String](propKeysArray))
         sqlContext.sparkContext.makeRDD(
           oVertices.map(vertex => Conversions.convertVerticesToRows(vertex, prunedSchema))
@@ -156,6 +156,7 @@ private[orientdb] case class OrientDBEdgeRelation(
   override lazy val schema: StructType = {
     userSchema.getOrElse{
       val tableName = params.edgeType.map(_.toString).get
+      val conn = orientDBEdgeWrapper.getConnection(params)
 
       try {
         orientDBEdgeWrapper.resolveTable(tableName)
@@ -216,7 +217,7 @@ private[orientdb] case class OrientDBEdgeRelation(
         edgeTypeName = params.edgeType match {
           case Some(edgeType) => edgeType
           case None => throw new IllegalArgumentException("For save operations you must specify a OrientDB Graph" +
-            " Edge type name with the 'edgeType' parameter")
+            " Edge type name with the 'edgetype' parameter")
         }
       }
 
@@ -234,15 +235,15 @@ private[orientdb] case class OrientDBEdgeRelation(
       }
 
       if (params.query.isEmpty) {
-        val prunedSchema = pruneSchema(schema, requiredColumns)
+        val prunedSchema = pruneSchema(schema, Array("id", "src", "dst") ++ requiredColumns)
         sqlContext.sparkContext.makeRDD(
           oEdges.map(edge => Conversions.convertEdgesToRows(edge, prunedSchema))
         )
       } else {
         assert(oEdges.nonEmpty)
         val propKeysArray = new Array[String](chooseRecordForSchema(oEdges).getPropertyKeys.size())
-        val prunedSchema = pruneSchema(schema, chooseRecordForSchema(oEdges)
-          .getPropertyKeys.toArray[String](propKeysArray))
+        val prunedSchema = pruneSchema(schema, Array("id", "src", "dst")
+          ++ chooseRecordForSchema(oEdges).getPropertyKeys.toArray[String](propKeysArray))
         sqlContext.sparkContext.makeRDD(
           oEdges.map(edge => Conversions.convertEdgesToRows(edge, prunedSchema))
         )

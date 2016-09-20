@@ -1,5 +1,6 @@
 package org.apache.spark.orientdb.graphs
 
+import com.orientechnologies.orient.core.id.ORecordId
 import com.tinkerpop.blueprints.impls.orient.{OrientGraphFactory, OrientGraphNoTx}
 import org.apache.spark.orientdb.documents.Conversions
 import org.apache.spark.orientdb.graphs.Parameters.MergedParameters
@@ -16,7 +17,7 @@ private[orientdb] class OrientDBVertexWriter(orientDBWrapper: OrientDBGraphVerte
     val vertexType = params.vertexType match {
       case Some(vertexTypeName) => vertexTypeName
       case None => throw new IllegalArgumentException("For save operations you must specify a OrientDB Vertex Type" +
-        " with the 'vertexType' parameter")
+        " with the 'vertextype' parameter")
     }
     var cluster = params.cluster match {
       case Some(clusterName) => clusterName
@@ -37,7 +38,7 @@ private[orientdb] class OrientDBVertexWriter(orientDBWrapper: OrientDBGraphVerte
     val vertexType = params.vertexType
     if (vertexType.isEmpty) {
       throw new IllegalArgumentException("For save operations you must specify a OrientDB Vertex Type" +
-        " with the 'vertexType' parameter")
+        " with the 'vertextype' parameter")
     }
 
     if (connection.getVertexType(vertexType.get) != null) {
@@ -52,7 +53,7 @@ private[orientdb] class OrientDBVertexWriter(orientDBWrapper: OrientDBGraphVerte
     val vertexType = params.vertexType
     if (vertexType.isEmpty) {
       throw new IllegalArgumentException("For save operations you must specify a OrientDB Vertex Type" +
-        " with the 'vertexType' parameter")
+        " with the 'vertextype' parameter")
     }
 
     if (connection.getVertexType(vertexType.get) == null) {
@@ -118,7 +119,7 @@ private[orientdb] class OrientDBEdgeWriter(orientDBWrapper: OrientDBGraphEdgeWra
     val edgeType = params.edgeType match {
       case Some(edgeTypeName) => edgeTypeName
       case None => throw new IllegalArgumentException("For save operations you must specify a OrientDB Edge Type" +
-        " with the 'edgeType' parameter")
+        " with the 'edgetype' parameter")
     }
 
     var cluster = params.cluster match {
@@ -130,8 +131,10 @@ private[orientdb] class OrientDBEdgeWriter(orientDBWrapper: OrientDBGraphEdgeWra
     val createdEdgeType = connector.createEdgeType(edgeType)
 
     dfSchema.foreach(field => {
-      createdEdgeType.createProperty(field.name,
-        Conversions.sparkDTtoOrientDBDT(field.dataType))
+      if (field.name != "inVertex" && field.name != "outVertex") {
+        createdEdgeType.createProperty(field.name,
+          Conversions.sparkDTtoOrientDBDT(field.dataType))
+      }
     })
   }
 
@@ -141,7 +144,7 @@ private[orientdb] class OrientDBEdgeWriter(orientDBWrapper: OrientDBGraphEdgeWra
     val edgeType = params.edgeType
     if (edgeType.isEmpty) {
       throw new IllegalArgumentException("For save operations you must specify a OrientDB Edge Type" +
-        " with the 'edgeType' parameter")
+        " with the 'edgetype' parameter")
     }
 
     if (connection.getEdgeType(edgeType.get) != null) {
@@ -156,10 +159,10 @@ private[orientdb] class OrientDBEdgeWriter(orientDBWrapper: OrientDBGraphEdgeWra
     val edgeType = params.edgeType
     if (edgeType.isEmpty) {
       throw new IllegalArgumentException("For save operations you must specify a OrientDB Edge Type" +
-        " with the 'edgeType' parameter")
+        " with the 'edgetype' parameter")
     }
 
-    if (connection.getEdgeType(edgeType.get) != null) {
+    if (connection.getEdgeType(edgeType.get) == null) {
       createOrientDBEdge(data, params)
     }
 

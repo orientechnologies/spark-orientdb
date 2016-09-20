@@ -10,14 +10,14 @@ private[orientdb] object Parameters {
       throw new IllegalArgumentException("A Orient DB URL must be provided with 'dburl' parameter")
     }
 
-    if (!userParameters.contains("vertexType") && !userParameters.contains("edgeType")) {
-      throw new IllegalArgumentException("You must specify one of Orient DB Vertex type in the 'vertexType'" +
-        " parameter or Orient DB Edge type in the 'edgeType' parameter")
+    if (!userParameters.contains("vertextype") && !userParameters.contains("edgetype")) {
+      throw new IllegalArgumentException("You must specify one of Orient DB Vertex type in the 'vertextype'" +
+        " parameter or Orient DB Edge type in the 'edgetype' parameter")
     }
 
-    if (userParameters.contains("vertexType") && userParameters.contains("edgeType")) {
-      throw new IllegalArgumentException("You must specify one of Orient DB Edge type in the 'edgeType'" +
-        " parameter or Orient DB Edge type in the 'edgeType' parameter")
+    if (userParameters.contains("vertextype") && userParameters.contains("edgetype")) {
+      throw new IllegalArgumentException("You must specify one of Orient DB Edge type in the 'vertextype'" +
+        " parameter or Orient DB Edge type in the 'edgetype' parameter")
     }
 
     if (!userParameters.contains("user") ||  !userParameters.contains("password")) {
@@ -32,12 +32,12 @@ private[orientdb] object Parameters {
     /**
       * The Orient DB Graph vertex Type to be used to load & write data
       */
-    def vertexType: Option[String] = parameters.get("vertexType").orElse(None)
+    def vertexType: Option[String] = parameters.get("vertextype").orElse(None)
 
     /**
       * The Orient DB Graph edge Type to be used to load & write data
       */
-    def edgeType: Option[String] = parameters.get("edgeType").orElse(None)
+    def edgeType: Option[String] = parameters.get("edgetype").orElse(None)
 
     /**
       * The Orient DB Graph sql query to be used for loading data

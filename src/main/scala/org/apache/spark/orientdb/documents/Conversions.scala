@@ -3,9 +3,10 @@ package org.apache.spark.orientdb.documents
 import java.sql.{Date, Timestamp}
 import java.text.SimpleDateFormat
 
+import com.orientechnologies.orient.core.id.ORecordId
 import com.orientechnologies.orient.core.metadata.schema.OType
 import com.orientechnologies.orient.core.record.impl.ODocument
-import com.tinkerpop.blueprints.{Edge, Vertex}
+import com.tinkerpop.blueprints.{Direction, Edge, Vertex}
 import org.apache.spark.sql.Row
 import org.apache.spark.sql.types._
 
@@ -128,11 +129,12 @@ private[orientdb] object Conversions {
   def convertVerticesToRows(vertex: Vertex, schema: StructType): Row = {
     val converted: scala.collection.mutable.IndexedSeq[Any] = mutable.IndexedSeq.fill(schema.length)(null)
     val fieldNames = vertex.getPropertyKeys
+    converted(0) = vertex.getId.asInstanceOf[ORecordId].toString
 
-    var i = 0
+    var i = 1
     while (i < schema.length) {
       if (fieldNames.contains(schema.fields(i).name)) {
-        val value = vertex.getProperty(schema.fields(i).name)
+        val value = vertex.getProperty[Object](schema.fields(i).name)
 
         converted(i) = orientDBDTtoSparkDT(schema.fields(i).dataType, value.toString)
       } else {
@@ -147,11 +149,16 @@ private[orientdb] object Conversions {
   def convertEdgesToRows(edge: Edge, schema: StructType): Row = {
     val converted: scala.collection.mutable.IndexedSeq[Any] = mutable.IndexedSeq.fill(schema.length)(null)
     val fieldNames = edge.getPropertyKeys
+    converted(0) = edge.getId.asInstanceOf[ORecordId].toString
+    converted(1) = edge.getVertex(Direction.IN).getId
+      .asInstanceOf[ORecordId].toString
+    converted(2) = edge.getVertex(Direction.OUT).getId
+      .asInstanceOf[ORecordId].toString
 
-    var i = 0
+    var i = 3
     while (i < schema.length) {
       if (fieldNames.contains(schema.fields(i).name)) {
-        val value = edge.getProperty(schema.fields(i).name)
+        val value = edge.getProperty[Object](schema.fields(i).name)
 
         converted(i) = orientDBDTtoSparkDT(schema.fields(i).dataType, value.toString)
       } else {
