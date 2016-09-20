@@ -56,6 +56,7 @@ class OrientDBGraphWrapper extends Serializable {
   def close(): Unit = {
     if (connectionPool.nonEmpty) {
       connectionPool.get.close()
+      connectionPool = None
     }
   }
 }
