@@ -131,7 +131,7 @@ private[orientdb] class OrientDBEdgeWriter(orientDBWrapper: OrientDBGraphEdgeWra
     val createdEdgeType = connector.createEdgeType(edgeType)
 
     dfSchema.foreach(field => {
-      if (field.name != "inVertex" && field.name != "outVertex") {
+      if (field.name != "src" && field.name != "dst") {
         createdEdgeType.createProperty(field.name,
           Conversions.sparkDTtoOrientDBDT(field.dataType))
       }
@@ -180,19 +180,19 @@ private[orientdb] class OrientDBEdgeWriter(orientDBWrapper: OrientDBGraphEdgeWra
 
           var inVertexName: String = null
           try {
-            inVertexName = fields.filter(field => field.name == "inVertex")
+            inVertexName = fields.filter(field => field.name == "src")
               .toList.head.name
           } catch {
-            case e: Exception => throw new IllegalArgumentException("'inVertex' is a mandatory parameter " +
+            case e: Exception => throw new IllegalArgumentException("'src' is a mandatory parameter " +
               "for creating an edge")
           }
 
           var outVertexName: String = null
           try {
-            outVertexName = fields.filter(field => field.name == "outVertex")
+            outVertexName = fields.filter(field => field.name == "dst")
               .toList.head.name
           } catch {
-            case e: Exception => throw new IllegalArgumentException("'outVertex' is a mandatory parameters " +
+            case e: Exception => throw new IllegalArgumentException("'dst' is a mandatory parameters " +
               "for creating an edge")
           }
 
@@ -213,8 +213,8 @@ private[orientdb] class OrientDBEdgeWriter(orientDBWrapper: OrientDBGraphEdgeWra
 
           var count = 0
           while (count < fields.length) {
-            if (fields(count).name != "inVertex" &&
-                fields(count).name != "outVertex") {
+            if (fields(count).name != "src" &&
+                fields(count).name != "dst") {
               val sparkType = fields(count).dataType
               val orientDBType = Conversions
                 .sparkDTtoOrientDBDT(sparkType)
