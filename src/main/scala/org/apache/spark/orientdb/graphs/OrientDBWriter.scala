@@ -1,11 +1,17 @@
 package org.apache.spark.orientdb.graphs
 
-import com.orientechnologies.orient.core.id.ORecordId
+import java.util
+
+import com.orientechnologies.orient.core.metadata.schema.OClass
+import com.orientechnologies.orient.core.sql.OCommandSQL
+import com.tinkerpop.blueprints.{Edge, Vertex}
 import com.tinkerpop.blueprints.impls.orient.{OrientGraphFactory, OrientGraphNoTx}
 import org.apache.spark.orientdb.documents.Conversions
 import org.apache.spark.orientdb.graphs.Parameters.MergedParameters
 import org.apache.spark.sql.{DataFrame, SaveMode}
 import org.slf4j.LoggerFactory
+
+import scala.collection.JavaConversions._
 
 private[orientdb] class OrientDBVertexWriter(orientDBWrapper: OrientDBGraphVertexWrapper,
                                              orientDBClientFactory: OrientDBCredentials => OrientDBClientFactory)
@@ -29,6 +35,10 @@ private[orientdb] class OrientDBVertexWriter(orientDBWrapper: OrientDBGraphVerte
 
     dfSchema.foreach(field => {
       createdVertexType.createProperty(field.name, Conversions.sparkDTtoOrientDBDT(field.dataType))
+
+      if (field.name == "id") {
+        createdVertexType.createIndex(s"${vertexType}Idx", OClass.INDEX_TYPE.UNIQUE, field.name)
+      }
     })
   }
 
@@ -69,17 +79,27 @@ private[orientdb] class OrientDBVertexWriter(orientDBWrapper: OrientDBGraphVerte
 
         while (rows.hasNext) {
           val row = rows.next()
-          val createdVertex = connection.addVertex(params.vertexType.get, null)
 
           val fields = row.schema.fields
+
+          val fieldNames = fields.map(_.name)
+          if (!fieldNames.contains("id")) {
+            throw new IllegalArgumentException("'id' is a mandatory parameter " +
+              "for creating a vertex")
+          }
+          val key = row.getAs[Object](fieldNames.indexOf("id"))
+          val properties = new util.HashMap[String, Object]()
+          properties.put("id", key)
+          connection.setStandardElementConstraints(false)
+          val createdVertex = connection.addVertex(s"class:${params.vertexType.get}", properties)
+
           var count = 0
           while (count < fields.length) {
             val sparkType = fields(count).dataType
             val orientDBType = Conversions
               .sparkDTtoOrientDBDT(sparkType)
             createdVertex.setProperty(fields(count).name,
-                                      row.getAs[sparkType.type](count),
-                                      orientDBType)
+              row.getAs[sparkType.type](count), orientDBType)
 
             count = count + 1
           }
@@ -122,19 +142,12 @@ private[orientdb] class OrientDBEdgeWriter(orientDBWrapper: OrientDBGraphEdgeWra
         " with the 'edgetype' parameter")
     }
 
-    var cluster = params.cluster match {
-      case Some(clusterName) => clusterName
-      case None => null
-    }
-
     val connector = orientDBWrapper.getConnection(params)
     val createdEdgeType = connector.createEdgeType(edgeType)
 
     dfSchema.foreach(field => {
-      if (field.name != "src" && field.name != "dst") {
-        createdEdgeType.createProperty(field.name,
-          Conversions.sparkDTtoOrientDBDT(field.dataType))
-      }
+      createdEdgeType.createProperty(field.name,
+        Conversions.sparkDTtoOrientDBDT(field.dataType))
     })
   }
 
@@ -166,6 +179,13 @@ private[orientdb] class OrientDBEdgeWriter(orientDBWrapper: OrientDBGraphEdgeWra
       createOrientDBEdge(data, params)
     }
 
+    val vertexType = params.vertexType match {
+      case Some(vertexTypeName) => vertexTypeName
+      case None =>
+        throw new IllegalArgumentException("Saving edges also require a vertex type specified by " +
+          "'vertextype' parameter")
+    }
+
     try {
       data.foreachPartition(rows => {
         val graphFactory = new OrientGraphFactory(params.dbUrl.get,
@@ -180,8 +200,7 @@ private[orientdb] class OrientDBEdgeWriter(orientDBWrapper: OrientDBGraphEdgeWra
 
           var inVertexName: String = null
           try {
-            inVertexName = fields.filter(field => field.name == "src")
-              .toList.head.name
+            inVertexName = row.getAs[String](fields.map(_.name).indexOf("src"))
           } catch {
             case e: Exception => throw new IllegalArgumentException("'src' is a mandatory parameter " +
               "for creating an edge")
@@ -189,23 +208,36 @@ private[orientdb] class OrientDBEdgeWriter(orientDBWrapper: OrientDBGraphEdgeWra
 
           var outVertexName: String = null
           try {
-            outVertexName = fields.filter(field => field.name == "dst")
-              .toList.head.name
+            outVertexName = row.getAs[String](fields.map(_.name).indexOf("dst"))
           } catch {
             case e: Exception => throw new IllegalArgumentException("'dst' is a mandatory parameters " +
               "for creating an edge")
           }
 
-          var inVertex = connection.getVertex(inVertexName)
-          if (inVertex == null) {
+          val inVertices: List[Vertex] = connection
+            .command(new OCommandSQL(s"select * from $vertexType where id = '$inVertexName'")).execute()
+              .asInstanceOf[java.lang.Iterable[Vertex]].toList
+
+          var inVertex: Vertex = null
+          if (inVertices.isEmpty) {
             println(s"in Vertex $inVertexName does not exist. Creating it...")
-            inVertex = connection.addVertex(inVertexName, null)
+            inVertex = connection.addVertex(vertexType, null)
+            inVertex.setProperty("id", inVertexName)
+          } else {
+            inVertex = inVertices.head
           }
 
-          var outVertex = connection.getVertex(outVertexName)
-          if (outVertex == null) {
+          val outVertices: List[Vertex] = connection
+            .command(new OCommandSQL(s"select * from $vertexType where id = '$outVertexName'")).execute()
+              .asInstanceOf[java.lang.Iterable[Vertex]].toList
+
+          var outVertex: Vertex = null
+          if (outVertices.isEmpty) {
             println(s"out Vertex $outVertexName does not exist. Creating it...")
-            outVertex = connection.addVertex(outVertexName, null)
+            outVertex = connection.addVertex(vertexType, null)
+            outVertex.setProperty("id", outVertexName)
+          } else {
+            outVertex = outVertices.head
           }
 
           val createdEdge = connection.addEdge(null, inVertex,
@@ -213,15 +245,11 @@ private[orientdb] class OrientDBEdgeWriter(orientDBWrapper: OrientDBGraphEdgeWra
 
           var count = 0
           while (count < fields.length) {
-            if (fields(count).name != "src" &&
-                fields(count).name != "dst") {
-              val sparkType = fields(count).dataType
-              val orientDBType = Conversions
-                .sparkDTtoOrientDBDT(sparkType)
-              createdEdge.setProperty(fields(count).name,
-                                      row.getAs[sparkType.type](count),
-                                      orientDBType)
-            }
+            val sparkType = fields(count).dataType
+            val orientDBType = Conversions
+              .sparkDTtoOrientDBDT(sparkType)
+            createdEdge.setProperty(fields(count).name,
+              row.getAs[sparkType.type](count), orientDBType)
             count = count + 1
           }
           graphFactory.close()

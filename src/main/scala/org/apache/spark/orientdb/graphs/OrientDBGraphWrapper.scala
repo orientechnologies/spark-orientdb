@@ -233,7 +233,7 @@ class OrientDBGraphVertexWrapper extends OrientDBGraphWrapper {
       fields(i) = StructField(columnName, columnType, nullable)
       i = i + 1
     }
-    new StructType(Array(StructField("id", StringType, false)) ++ fields)
+    new StructType(fields)
   }
 
   /**
@@ -428,9 +428,7 @@ class OrientDBGraphEdgeWrapper extends OrientDBGraphWrapper {
       fields(i) = StructField(columnName, columnType, nullable)
       i = i + 1
     }
-    new StructType(Array(StructField("id", StringType, false),
-      StructField("src", StringType, false), StructField("dst", StringType, false))
-      ++ fields)
+    new StructType(fields)
   }
 
   /**

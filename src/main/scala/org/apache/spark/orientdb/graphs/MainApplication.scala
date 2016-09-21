@@ -12,13 +12,13 @@ object MainApplication extends App {
   val sqlContext = new SQLContext(sc)
 
   import sqlContext.implicits._
-  val df = sc.parallelize(Array(1, 2, 3, 4, 5)).toDF("id1")
+  val df = sc.parallelize(Array(1, 2, 3, 4, 5)).toDF("id")
 
   df.write.format("org.apache.spark.orientdb.graphs")
     .option("dburl", "remote:127.0.0.1:2424/GratefulDeadConcerts")
     .option("user", "root")
     .option("password", "root")
-    .option("vertextype", "v100")
+    .option("vertextype", "v104")
     .mode(SaveMode.Overwrite)
     .save()
 
@@ -27,29 +27,31 @@ object MainApplication extends App {
                 .option("dburl", "remote:127.0.0.1:2424/GratefulDeadConcerts")
                 .option("user", "root")
                 .option("password", "root")
-                .option("vertextype", "v100")
+                .option("vertextype", "v104")
                 .load()
 
-  var inVertex: String = null
-  var outVertex: String = null
+  var inVertex: Integer = null
+  var outVertex: Integer = null
   vertices.collect().foreach(row => {
-    if (inVertex != null) {
-      inVertex = row.getAs[String]("id")
+    if (inVertex == null) {
+      inVertex = row.getAs[Integer]("id")
     }
-    if (outVertex != null) {
-      outVertex = row.getAs[String]("id")
+    if (outVertex == null) {
+      outVertex = row.getAs[Integer]("id")
     }
   })
 
-  val df1 = sqlContext.createDataFrame(sc.parallelize(Seq(Row(1, inVertex, outVertex))),
-    StructType(List(StructField("id1", IntegerType), StructField("src", StringType),
+  val df1 = sqlContext.createDataFrame(sc.parallelize(Seq(Row("friends", "1", "2"),
+    Row("enemies", "2", "3"), Row("friends", "3", "1"))),
+    StructType(List(StructField("relationship", StringType), StructField("src", StringType),
       StructField("dst", StringType))))
 
   df1.write.format("org.apache.spark.orientdb.graphs")
     .option("dburl", "remote:127.0.0.1:2424/GratefulDeadConcerts")
     .option("user", "root")
     .option("password", "root")
-    .option("edgetype", "e100")
+    .option("vertextype", "v104")
+    .option("edgetype", "e104")
     .mode(SaveMode.Overwrite)
     .save()
 
@@ -58,12 +60,12 @@ object MainApplication extends App {
               .option("dburl", "remote:127.0.0.1:2424/GratefulDeadConcerts")
               .option("user", "root")
               .option("password", "root")
-              .option("edgetype", "e100")
+              .option("edgetype", "e104")
               .load()
 
   edges.show()
 
   val g = GraphFrame(vertices, edges)
   g.inDegrees.show()
-  println(g.edges.filter("id1 = 1").count())
+  println(g.edges.filter("relationship = 'friends'").count())
 }

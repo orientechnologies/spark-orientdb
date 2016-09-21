@@ -22,6 +22,14 @@ object TestUtils {
     ))
   }
 
+  val testSchemaForEdges: StructType = {
+    StructType(Seq(
+      StructField("src", StringType),
+      StructField("dst", StringType),
+      StructField("relationship", StringType)
+    ))
+  }
+
   val expectedData: Seq[Row] = Seq(
     Row(1.toByte, true, TestUtils.toDate(2015, 6, 1), 1234152.12312498,
       1.0f, 42, 1239012341823719L, 23.toShort, "Unicode's樂趣",
@@ -33,6 +41,10 @@ object TestUtils {
     Row(0.toByte, false, null, -1234152.12312498, 100000.0f, null, 1239012341823719L, 24.toShort,
       "___|_123", null),
     Row(List.fill(10)(null): _*)
+  )
+
+  val expectedDataForEdges: Seq[Row] = Seq(
+    Row()
   )
 
   def toMillis(

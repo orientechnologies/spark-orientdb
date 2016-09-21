@@ -15,11 +15,6 @@ private[orientdb] object Parameters {
         " parameter or Orient DB Edge type in the 'edgetype' parameter")
     }
 
-    if (userParameters.contains("vertextype") && userParameters.contains("edgetype")) {
-      throw new IllegalArgumentException("You must specify one of Orient DB Edge type in the 'vertextype'" +
-        " parameter or Orient DB Edge type in the 'edgetype' parameter")
-    }
-
     if (!userParameters.contains("user") ||  !userParameters.contains("password")) {
       throw new IllegalArgumentException("You must specify both the OrientDB username in 'user' parameter &" +
         " OrientDB password in the 'password' parameter")

@@ -129,9 +129,8 @@ private[orientdb] object Conversions {
   def convertVerticesToRows(vertex: Vertex, schema: StructType): Row = {
     val converted: scala.collection.mutable.IndexedSeq[Any] = mutable.IndexedSeq.fill(schema.length)(null)
     val fieldNames = vertex.getPropertyKeys
-    converted(0) = vertex.getId.asInstanceOf[ORecordId].toString
 
-    var i = 1
+    var i = 0
     while (i < schema.length) {
       if (fieldNames.contains(schema.fields(i).name)) {
         val value = vertex.getProperty[Object](schema.fields(i).name)
@@ -149,13 +148,8 @@ private[orientdb] object Conversions {
   def convertEdgesToRows(edge: Edge, schema: StructType): Row = {
     val converted: scala.collection.mutable.IndexedSeq[Any] = mutable.IndexedSeq.fill(schema.length)(null)
     val fieldNames = edge.getPropertyKeys
-    converted(0) = edge.getId.asInstanceOf[ORecordId].toString
-    converted(1) = edge.getVertex(Direction.IN).getId
-      .asInstanceOf[ORecordId].toString
-    converted(2) = edge.getVertex(Direction.OUT).getId
-      .asInstanceOf[ORecordId].toString
 
-    var i = 3
+    var i = 0
     while (i < schema.length) {
       if (fieldNames.contains(schema.fields(i).name)) {
         val value = edge.getProperty[Object](schema.fields(i).name)

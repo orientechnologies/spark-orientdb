@@ -24,7 +24,7 @@ class DefaultSource( orientDBGraphVertexWrapper: OrientDBGraphVertexWrapper,
         " 'edgetype' parameter or user-defined Schema")
     }
 
-    if (params.vertexType.isDefined) {
+    if (params.vertexType.isDefined && params.edgeType.isEmpty) {
       OrientDBVertexRelation(orientDBGraphVertexWrapper, orientDBClientFactory, params, None)(sqlContext)
     } else {
       OrientDBEdgeRelation(orientDBGraphEdgeWrapper, orientDBClientFactory, params, None)(sqlContext)
@@ -72,7 +72,7 @@ class DefaultSource( orientDBGraphVertexWrapper: OrientDBGraphVertexWrapper,
       }
     }
 
-    if (vertexType.isDefined) {
+    if (vertexType.isDefined && edgeType.isEmpty) {
       val (doSave, dropExisting) = mode match {
         case SaveMode.Append => (true, false)
         case SaveMode.Overwrite => (true, true)
@@ -98,6 +98,11 @@ class DefaultSource( orientDBGraphVertexWrapper: OrientDBGraphVertexWrapper,
       }
       createRelation(sqlContext, parameters)
     } else {
+      if (!parameters.contains("vertextype") && parameters.contains("edgetype")) {
+        throw new IllegalArgumentException("You must specify the Orient DB Vertex type in the 'vertextype'" +
+          " parameter along with Orient DB Edge type in the 'edgetype' parameter")
+      }
+
       try {
         val connection = orientDBGraphEdgeWrapper.getConnection(params)
         orientDBGraphEdgeWrapper.doesEdgeTypeExists(edgeType.get)

@@ -107,14 +107,14 @@ private[orientdb] case class OrientDBVertexRelation(
       }
 
       if (params.query.isEmpty) {
-        val prunedSchema = pruneSchema(schema, Array("id") ++ requiredColumns)
+        val prunedSchema = pruneSchema(schema, requiredColumns)
         sqlContext.sparkContext.makeRDD(
           oVertices.map(vertex => Conversions.convertVerticesToRows(vertex, prunedSchema))
         )
       } else {
         assert(oVertices.nonEmpty)
         val propKeysArray = new Array[String](chooseRecordForSchema(oVertices).getPropertyKeys.size())
-        val prunedSchema = pruneSchema(schema, Array("id") ++ chooseRecordForSchema(oVertices)
+        val prunedSchema = pruneSchema(schema, chooseRecordForSchema(oVertices)
           .getPropertyKeys.toArray[String](propKeysArray))
         sqlContext.sparkContext.makeRDD(
           oVertices.map(vertex => Conversions.convertVerticesToRows(vertex, prunedSchema))
@@ -235,15 +235,15 @@ private[orientdb] case class OrientDBEdgeRelation(
       }
 
       if (params.query.isEmpty) {
-        val prunedSchema = pruneSchema(schema, Array("id", "src", "dst") ++ requiredColumns)
+        val prunedSchema = pruneSchema(schema, requiredColumns)
         sqlContext.sparkContext.makeRDD(
           oEdges.map(edge => Conversions.convertEdgesToRows(edge, prunedSchema))
         )
       } else {
         assert(oEdges.nonEmpty)
         val propKeysArray = new Array[String](chooseRecordForSchema(oEdges).getPropertyKeys.size())
-        val prunedSchema = pruneSchema(schema, Array("id", "src", "dst")
-          ++ chooseRecordForSchema(oEdges).getPropertyKeys.toArray[String](propKeysArray))
+        val prunedSchema = pruneSchema(schema,
+          chooseRecordForSchema(oEdges).getPropertyKeys.toArray[String](propKeysArray))
         sqlContext.sparkContext.makeRDD(
           oEdges.map(edge => Conversions.convertEdgesToRows(edge, prunedSchema))
         )
