@@ -35,10 +35,10 @@ class DefaultSource( orientDBGraphVertexWrapper: OrientDBGraphVertexWrapper,
                               schema: StructType): BaseRelation = {
     val params = Parameters.mergeParameters(parameters)
 
-    if (params.vertexType.isDefined) {
-      OrientDBVertexRelation(orientDBGraphVertexWrapper, orientDBClientFactory, params, None)(sqlContext)
+    if (params.vertexType.isDefined && params.edgeType.isEmpty) {
+      OrientDBVertexRelation(orientDBGraphVertexWrapper, orientDBClientFactory, params, Some(schema))(sqlContext)
     } else {
-      OrientDBEdgeRelation(orientDBGraphEdgeWrapper, orientDBClientFactory, params, None)(sqlContext)
+      OrientDBEdgeRelation(orientDBGraphEdgeWrapper, orientDBClientFactory, params, Some(schema))(sqlContext)
     }
   }
 

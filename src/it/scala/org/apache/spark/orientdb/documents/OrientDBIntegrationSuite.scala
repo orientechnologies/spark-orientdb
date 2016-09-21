@@ -23,15 +23,15 @@ class OrientDBIntegrationSuite extends IntegrationSuiteBase {
       .format("org.apache.spark.orientdb.documents")
       .option("dburl", ORIENTDB_CONNECTION_URL)
       .option("user", ORIENTDB_USER).option("password", ORIENTDB_PASSWORD)
-      .option("class", test_table2)
+      .option("class", test_table)
       .mode(SaveMode.Overwrite)
       .save()
   }
 
   override def afterEach(): Unit = {
-    orientDBWrapper.delete(null, test_table2, null)
+    orientDBWrapper.delete(null, test_table, null)
     val schema = connection.getMetadata.getSchema
-    schema.dropClass(test_table2)
+    schema.dropClass(test_table)
   }
 
   test("count() on DataFrame created from a OrientDB class") {
@@ -55,7 +55,7 @@ class OrientDBIntegrationSuite extends IntegrationSuiteBase {
       .option("user", ORIENTDB_USER)
       .option("password", ORIENTDB_PASSWORD)
       .option("class", test_table)
-      .option("query", s"select * from $test_table2 where teststring = 'asdf'")
+      .option("query", s"select * from $test_table where teststring = 'asdf'")
       .load()
 
     checkAnswer(

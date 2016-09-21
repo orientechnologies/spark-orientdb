@@ -22,10 +22,26 @@ object TestUtils {
     ))
   }
 
+  val testSchemaForVertices: StructType = {
+    StructType(Seq(
+      StructField("id", IntegerType),
+      StructField("testbyte", ByteType),
+      StructField("testbool", BooleanType),
+      StructField("testdate", DateType),
+      StructField("testdouble", DoubleType),
+      StructField("testfloat", FloatType),
+      StructField("testint", IntegerType),
+      StructField("testlong", LongType),
+      StructField("testshort", ShortType),
+      StructField("teststring", StringType),
+      StructField("testtimestamp", TimestampType)
+    ))
+  }
+
   val testSchemaForEdges: StructType = {
     StructType(Seq(
-      StructField("src", StringType),
-      StructField("dst", StringType),
+      StructField("src", IntegerType),
+      StructField("dst", IntegerType),
       StructField("relationship", StringType)
     ))
   }
@@ -43,8 +59,24 @@ object TestUtils {
     Row(List.fill(10)(null): _*)
   )
 
+  val expectedDataForVertices: Seq[Row] = Seq(
+    Row(1, 1.toByte, true, TestUtils.toDate(2015, 6, 1), 1234152.12312498,
+      1.0f, 42, 1239012341823719L, 23.toShort, "Unicode's樂趣",
+      TestUtils.toTimestamp(2015, 6, 1, 0, 0, 0, 1)),
+    Row(2, 1.toByte, false, TestUtils.toDate(2015, 6, 2), 0.0, 0.0f, 42,
+      1239012341823719L, -13.toShort, "asdf", TestUtils.toTimestamp(2015, 6, 2, 0, 0, 0, 0)),
+    Row(3, 0.toByte, null, TestUtils.toDate(2015, 6, 3), 0.0, -1.0f, 4141214,
+      1239012341823719L, null, "f", TestUtils.toTimestamp(2015, 6, 3, 0, 0, 0)),
+    Row(4, 0.toByte, false, null, -1234152.12312498, 100000.0f, null, 1239012341823719L, 24.toShort,
+      "___|_123", null),
+    Row(List.fill(11)(null): _*)
+  )
+
   val expectedDataForEdges: Seq[Row] = Seq(
-    Row()
+    Row(1, 2, "friends"),
+    Row(2, 3, "enemy"),
+    Row(3, 4, "friends"),
+    Row(4, 1, "enemy")
   )
 
   def toMillis(

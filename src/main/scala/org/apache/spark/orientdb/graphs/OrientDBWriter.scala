@@ -200,7 +200,7 @@ private[orientdb] class OrientDBEdgeWriter(orientDBWrapper: OrientDBGraphEdgeWra
 
           var inVertexName: String = null
           try {
-            inVertexName = row.getAs[String](fields.map(_.name).indexOf("src"))
+            inVertexName = row.getAs[Object](fields.map(_.name).indexOf("src")).toString
           } catch {
             case e: Exception => throw new IllegalArgumentException("'src' is a mandatory parameter " +
               "for creating an edge")
@@ -208,7 +208,7 @@ private[orientdb] class OrientDBEdgeWriter(orientDBWrapper: OrientDBGraphEdgeWra
 
           var outVertexName: String = null
           try {
-            outVertexName = row.getAs[String](fields.map(_.name).indexOf("dst"))
+            outVertexName = row.getAs[Object](fields.map(_.name).indexOf("dst")).toString
           } catch {
             case e: Exception => throw new IllegalArgumentException("'dst' is a mandatory parameters " +
               "for creating an edge")
