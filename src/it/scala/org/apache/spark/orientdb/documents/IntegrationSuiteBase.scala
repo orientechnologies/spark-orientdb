@@ -3,8 +3,8 @@ package org.apache.spark.orientdb.documents
 import com.orientechnologies.orient.core.db.document.ODatabaseDocumentTx
 import org.apache.spark.SparkContext
 import org.apache.spark.orientdb.QueryTest
-import org.apache.spark.sql.{DataFrame, Row, SQLContext, SaveMode}
 import org.apache.spark.sql.types.StructType
+import org.apache.spark.sql.{DataFrame, SQLContext, SaveMode}
 import org.scalatest.{BeforeAndAfterAll, BeforeAndAfterEach, Matchers}
 
 trait IntegrationSuiteBase
