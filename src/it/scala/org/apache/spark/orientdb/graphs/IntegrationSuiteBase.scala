@@ -35,13 +35,13 @@ trait IntegrationSuiteBase
     super.beforeAll()
     sc = new SparkContext("local", "OrientDBSourceSuite")
 
-    val parameters = scala.collection.mutable.Map[String, String](
+    val parameters = Map[String, String](
                       "dburl" -> ORIENTDB_CONNECTION_URL,
                       "user" -> ORIENTDB_USER,
                       "password" -> ORIENTDB_PASSWORD)
 
-    val vertexParams = parameters.put("vertextype", "dummy_vertex").toMap[String, String]
-    val edgeParams = parameters.put("edgetype", "dummy_edge").toMap[String, String]
+    val vertexParams: Map[String, String] = parameters ++ Map[String, String]("vertextype" -> "dummy_vertex")
+    val edgeParams = parameters ++ Map[String, String]("edgetype" -> "dummy_edge")
 
     vertex_connection = orientDBGraphVertexWrapper
       .getConnection(Parameters.mergeParameters(vertexParams))

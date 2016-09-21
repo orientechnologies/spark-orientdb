@@ -1,7 +1,5 @@
 package org.apache.spark.orientdb.graphs
 
-import org.apache.spark.orientdb.documents.IntegrationSuiteBase
-
 class OrientDBGraphIntegrationSuite extends IntegrationSuiteBase {
   private val test_vertex_type: String = "test_vertex_type__"
   private val test_edge_type: String = "test_edge_type__"
