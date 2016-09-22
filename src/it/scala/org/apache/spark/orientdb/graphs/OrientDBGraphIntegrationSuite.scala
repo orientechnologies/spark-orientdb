@@ -106,7 +106,6 @@ class OrientDBGraphIntegrationSuite extends IntegrationSuiteBase {
                     .option("dburl", ORIENTDB_CONNECTION_URL)
                     .option("user", ORIENTDB_USER)
                     .option("password", ORIENTDB_PASSWORD)
-                    .option("vertextype", test_vertex_type2)
                     .option("edgetype", test_edge_type2)
                     .option("query", s"select * from $test_edge_type2 where relationship = 'friends'")
                     .load()
@@ -142,7 +141,6 @@ class OrientDBGraphIntegrationSuite extends IntegrationSuiteBase {
         .option("dburl", ORIENTDB_CONNECTION_URL)
         .option("user", ORIENTDB_USER)
         .option("password", ORIENTDB_PASSWORD)
-        .option("vertextype", test_vertex_type2)
         .option("edgetype", test_edge_type2)
         .option("query", s"select relationahip.replace('\\\\', '') as relationship from $test_edge_type2")
         .schema(StructType(Array(StructField("relationship", StringType, true))))
@@ -191,7 +189,6 @@ class OrientDBGraphIntegrationSuite extends IntegrationSuiteBase {
         .option("dburl", ORIENTDB_CONNECTION_URL)
         .option("user", ORIENTDB_USER)
         .option("password", ORIENTDB_PASSWORD)
-        .option("vertextype", test_vertex_type2)
         .option("edgetype", test_edge_type2)
         .option("query", s"select relationship from $test_edge_type2")
         .schema(StructType(Array(StructField("relationship", StringType, true))))
@@ -237,7 +234,6 @@ class OrientDBGraphIntegrationSuite extends IntegrationSuiteBase {
         .option("dburl", ORIENTDB_CONNECTION_URL)
         .option("user", ORIENTDB_USER)
         .option("password", ORIENTDB_PASSWORD)
-        .option("vertextype", test_vertex_type2)
         .option("edgetype", test_edge_type2)
         .option("query", s"select relationship, count(*) from $test_vertex_type2 group by relationship")
         .schema(StructType(Array(
@@ -278,7 +274,6 @@ class OrientDBGraphIntegrationSuite extends IntegrationSuiteBase {
         .option("dburl", ORIENTDB_CONNECTION_URL)
         .option("user", ORIENTDB_USER)
         .option("password", ORIENTDB_PASSWORD)
-        .option("vertextype", test_vertex_type2)
         .option("edgetype", test_edge_type2)
         .option("query", s"select relationship from $test_edge_type2")
         .schema(StructType(Array(
@@ -291,5 +286,42 @@ class OrientDBGraphIntegrationSuite extends IntegrationSuiteBase {
     } catch {
       case e: Exception => LOG.info("Bug in Orient Graph Edges Read Api")
     }
+  }
+
+  test("query with pruned and filtered scans for Vertices") {
+    val loadedDf = sqlContext.read
+      .format("org.apache.spark.orientdb.graphs")
+      .option("dburl", ORIENTDB_CONNECTION_URL)
+      .option("user", ORIENTDB_USER)
+      .option("password", ORIENTDB_PASSWORD)
+      .option("vertextype", test_vertex_type2)
+      .option("query", s"select testbyte, testbool from $test_vertex_type2 " +
+        s"where testbool = true and testdouble = 1234152.12312498 " +
+        s"and testfloat = 1.0 and testint = 42")
+      .schema(StructType(Array(StructField("testbyte", ByteType, true),
+        StructField("testbool", BooleanType, true))))
+      .load()
+
+    checkAnswer(
+      loadedDf,
+      Seq(Row(1, true))
+    )
+  }
+
+  test("query with pruned and filtered scans for Edges") {
+    val loadedDf = sqlContext.read
+      .format("org.apache.spark.orientdb.graphs")
+      .option("dburl", ORIENTDB_CONNECTION_URL)
+      .option("user", ORIENTDB_USER)
+      .option("password", ORIENTDB_PASSWORD)
+      .option("edgetype", test_edge_type2)
+      .option("query", s"select * from $test_edge_type2 " +
+        s"where relationship = 'friends'")
+      .load()
+
+    checkAnswer(
+      loadedDf,
+      Seq(Row(2, "friends", 1), Row(4, "friends", 3))
+    )
   }
 }

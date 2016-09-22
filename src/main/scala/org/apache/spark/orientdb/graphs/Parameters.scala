@@ -10,9 +10,9 @@ private[orientdb] object Parameters {
       throw new IllegalArgumentException("A Orient DB URL must be provided with 'dburl' parameter")
     }
 
-    if (!userParameters.contains("vertextype") && !userParameters.contains("edgetype")) {
+    if (!userParameters.contains("vertextype") && !userParameters.contains("edgetype") && !userParameters.contains("query")) {
       throw new IllegalArgumentException("You must specify one of Orient DB Vertex type in the 'vertextype'" +
-        " parameter or Orient DB Edge type in the 'edgetype' parameter")
+        " parameter or Orient DB Edge type in the 'edgetype' parameter or a user specified query using 'query' parameter")
     }
 
     if (!userParameters.contains("user") ||  !userParameters.contains("password")) {
