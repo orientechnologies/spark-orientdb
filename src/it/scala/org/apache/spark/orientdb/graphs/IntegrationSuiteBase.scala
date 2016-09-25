@@ -94,7 +94,7 @@ trait IntegrationSuiteBase
                       .option("vertextype", vertexType)
                       .load()
 
-      assert(loadedDf.schema === expectedSchemaAfterLoad.getOrElse(df.schema))
+      loadedDf.schema.fields.foreach(field => assert(df.schema.fields.contains(field)))
       checkAnswer(loadedDf, df.collect())
     } finally {
       orientDBGraphVertexWrapper.delete(vertexType, null)
@@ -102,16 +102,28 @@ trait IntegrationSuiteBase
     }
   }
 
-  def testRoundtripSaveAndLoadForEdges(edgeType: String,
+  def testRoundtripSaveAndLoadForEdges( vertexType: String,
+                                        edgeType: String,
+                                        vertexDf: DataFrame,
                                        df: DataFrame,
                                        expectedSchemaAfterLoad: Option[StructType] = None,
                                        saveMode: SaveMode = SaveMode.ErrorIfExists): Unit = {
     try {
+      vertexDf.write
+        .format("org.apache.spark.orientdb.graphs")
+        .option("dburl", ORIENTDB_CONNECTION_URL)
+        .option("user", ORIENTDB_USER)
+        .option("password", ORIENTDB_PASSWORD)
+        .option("vertextype", vertexType)
+        .mode(saveMode)
+        .save()
+
       df.write
         .format("org.apache.spark.orientdb.graphs")
         .option("dburl", ORIENTDB_CONNECTION_URL)
         .option("user", ORIENTDB_USER)
         .option("password", ORIENTDB_PASSWORD)
+        .option("vertextype", vertexType)
         .option("edgetype", edgeType)
         .mode(saveMode)
         .save()
@@ -129,11 +141,16 @@ trait IntegrationSuiteBase
                       .option("edgetype", edgeType)
                       .load()
 
-      assert(loadedDf.schema === expectedSchemaAfterLoad.getOrElse(df.schema))
-      checkAnswer(loadedDf, df.collect())
+      loadedDf.schema.fields.foreach(field => assert(df.schema.fields.contains(field)))
+      assert(loadedDf.count() === df.collect().size)
     } finally {
-      orientDBGraphEdgeWrapper.delete(edgeType, null)
-      edge_connection.dropEdgeType(edgeType)
+      try {
+        orientDBGraphEdgeWrapper.delete(edgeType, null)
+        orientDBGraphVertexWrapper.delete(vertexType, null)
+      } finally {
+        edge_connection.dropEdgeType(edgeType)
+        vertex_connection.dropVertexType(vertexType)
+      }
     }
   }
 }

@@ -423,7 +423,7 @@ class OrientDBGraphEdgeWrapper extends OrientDBGraphWrapper {
       val columnName = property.getName
 
       // there are no keys..hence for now every field is nullable
-      val nullable = false
+      val nullable = true
       val columnType = getCatalystType(property.getType)
       fields(i) = StructField(columnName, columnType, nullable)
       i = i + 1

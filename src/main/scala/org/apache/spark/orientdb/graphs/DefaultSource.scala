@@ -56,7 +56,7 @@ class DefaultSource( orientDBGraphVertexWrapper: OrientDBGraphVertexWrapper,
 
 
     def tableExists: Boolean = {
-      if (vertexType.isDefined) {
+      if (vertexType.isDefined && edgeType.isEmpty) {
         try {
           orientDBGraphVertexWrapper.doesVertexTypeExists(vertexType.get)
         } finally {
