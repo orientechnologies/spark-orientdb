@@ -119,6 +119,13 @@ class DefaultSource( orientDBGraphVertexWrapper: OrientDBGraphVertexWrapper,
           } else {
             (true, false)
           }
+        case SaveMode.Ignore =>
+          if (tableExists) {
+            log.info(s"Edge Type $edgeType already exists. Ignoring save requests.")
+            (false, false)
+          } else {
+            (true, false)
+          }
       }
 
       if (doSave) {

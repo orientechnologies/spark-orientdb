@@ -785,4 +785,201 @@ class OrientDBGraphIntegrationSuite extends IntegrationSuiteBase {
       }
     }
   }
+
+  test("Respect SaveMode.ErrorIfExists when vertextype exists") {
+    val vertexType = s"error_vertextype_${scala.util.Random.nextInt(100)}"
+
+    try {
+      sqlContext.createDataFrame(sc.parallelize(TestUtils.expectedDataForVertices),
+        TestUtils.testSchemaForVertices).write
+        .format("org.apache.spark.orientdb.graphs")
+        .option("dburl", ORIENTDB_CONNECTION_URL)
+        .option("user", ORIENTDB_USER)
+        .option("password", ORIENTDB_PASSWORD)
+        .option("vertextype", vertexType)
+        .mode(SaveMode.ErrorIfExists)
+        .save()
+
+      intercept[RuntimeException] {
+        sqlContext.createDataFrame(sc.parallelize(TestUtils.expectedDataForVertices),
+          TestUtils.testSchemaForVertices).write
+          .format("org.apache.spark.orientdb.graphs")
+          .option("dburl", ORIENTDB_CONNECTION_URL)
+          .option("user", ORIENTDB_USER)
+          .option("password", ORIENTDB_PASSWORD)
+          .option("vertextype", vertexType)
+          .mode(SaveMode.ErrorIfExists)
+          .save()
+      }
+    } finally {
+      orientDBGraphVertexWrapper.delete(vertexType, null)
+      vertex_connection.dropVertexType(vertexType)
+    }
+  }
+
+  test("Respect SaveMode.ErrorIfExists when edgetype exists") {
+    val vertexType = s"error_vertextype_${scala.util.Random.nextInt(100)}"
+    val edgeType = s"error_edgetype_${scala.util.Random.nextInt(100)}"
+
+    try {
+      sqlContext.createDataFrame(sc.parallelize(TestUtils.expectedDataForVertices),
+        TestUtils.testSchemaForVertices).write
+        .format("org.apache.spark.orientdb.graphs")
+        .option("dburl", ORIENTDB_CONNECTION_URL)
+        .option("user", ORIENTDB_USER)
+        .option("password", ORIENTDB_PASSWORD)
+        .option("vertextype", vertexType)
+        .mode(SaveMode.ErrorIfExists)
+        .save()
+
+      sqlContext.createDataFrame(sc.parallelize(TestUtils.expectedDataForEdges),
+        TestUtils.testSchemaForEdges).write
+        .format("org.apache.spark.orientdb.graphs")
+        .option("dburl", ORIENTDB_CONNECTION_URL)
+        .option("user", ORIENTDB_USER)
+        .option("password", ORIENTDB_PASSWORD)
+        .option("vertextype", vertexType)
+        .option("edgetype", edgeType)
+        .mode(SaveMode.ErrorIfExists)
+        .save()
+
+      intercept[RuntimeException] {
+        sqlContext.createDataFrame(sc.parallelize(TestUtils.expectedDataForEdges),
+          TestUtils.testSchemaForEdges).write
+          .format("org.apache.spark.orientdb.graphs")
+          .option("dburl", ORIENTDB_CONNECTION_URL)
+          .option("user", ORIENTDB_USER)
+          .option("password", ORIENTDB_PASSWORD)
+          .option("vertextype", vertexType)
+          .option("edgetype", edgeType)
+          .mode(SaveMode.ErrorIfExists)
+          .save()
+      }
+    } finally {
+      try {
+        orientDBGraphEdgeWrapper.delete(edgeType, null)
+        orientDBGraphVertexWrapper.delete(vertexType, null)
+      } finally {
+        edge_connection.dropEdgeType(edgeType)
+        vertex_connection.dropVertexType(vertexType)
+      }
+    }
+  }
+
+  test("Do nothing when OrientDB Graph vertextype exists if SaveMode = Ignore") {
+    val vertexType = s"ignore_vertexType_${scala.util.Random.nextInt(100)}"
+
+    try {
+      sqlContext.createDataFrame(sc.parallelize(TestUtils.expectedDataForVertices),
+        TestUtils.testSchemaForVertices).write
+        .format("org.apache.spark.orientdb.graphs")
+        .option("dburl", ORIENTDB_CONNECTION_URL)
+        .option("user", ORIENTDB_USER)
+        .option("password", ORIENTDB_PASSWORD)
+        .option("vertextype", vertexType)
+        .mode(SaveMode.ErrorIfExists)
+        .save()
+
+      assert(DefaultOrientDBGraphVertexWrapper.doesVertexTypeExists(vertexType))
+
+      val extraData = Seq(
+        Row(6, 2.toByte, false, null, -1234152.12312498, 100000.0f, null, 1239012341823719L,
+          24.toShort, "___|_123", null))
+
+      sqlContext.createDataFrame(sc.parallelize(extraData),
+        TestUtils.testSchemaForVertices).write
+        .format("org.apache.spark.orientdb.graphs")
+        .option("dburl", ORIENTDB_CONNECTION_URL)
+        .option("user", ORIENTDB_USER)
+        .option("password", ORIENTDB_PASSWORD)
+        .option("vertextype", vertexType)
+        .mode(SaveMode.Ignore)
+        .save()
+
+      val loadedDf = sqlContext.read
+                        .format("org.apache.spark.orientdb.graphs")
+                        .option("dburl", ORIENTDB_CONNECTION_URL)
+                        .option("user", ORIENTDB_USER)
+                        .option("password", ORIENTDB_PASSWORD)
+                        .option("vertextype", vertexType)
+                        .load()
+
+      checkAnswer(
+        loadedDf.selectExpr("count(*)"),
+        Seq(Row(TestUtils.expectedDataForVertices.length))
+      )
+    } finally {
+      try {
+        orientDBGraphVertexWrapper.delete(vertexType, null)
+      } finally {
+        vertex_connection.dropVertexType(vertexType)
+      }
+    }
+  }
+
+  test("Do nothing when OrientDB Graph edgetype exists if SaveMode = Ignore") {
+    val vertexType = s"ignore_vertextype_${scala.util.Random.nextInt(100)}"
+    val edgeType = s"ignore_edgetype_${scala.util.Random.nextInt(100)}"
+
+    try {
+      sqlContext.createDataFrame(sc.parallelize(TestUtils.expectedDataForVertices),
+        TestUtils.testSchemaForVertices).write
+        .format("org.apache.spark.orientdb.graphs")
+        .option("dburl", ORIENTDB_CONNECTION_URL)
+        .option("user", ORIENTDB_USER)
+        .option("password", ORIENTDB_PASSWORD)
+        .option("vertextype", vertexType)
+        .mode(SaveMode.ErrorIfExists)
+        .save()
+
+      assert(DefaultOrientDBGraphVertexWrapper.doesVertexTypeExists(vertexType))
+
+      sqlContext.createDataFrame(sc.parallelize(TestUtils.expectedDataForEdges),
+        TestUtils.testSchemaForEdges).write
+        .format("org.apache.spark.orientdb.graphs")
+        .option("dburl", ORIENTDB_CONNECTION_URL)
+        .option("user", ORIENTDB_USER)
+        .option("password", ORIENTDB_PASSWORD)
+        .option("vertextype", vertexType)
+        .option("edgetype", edgeType)
+        .mode(SaveMode.ErrorIfExists)
+        .save()
+
+      assert(DefaultOrientDBGraphEdgeWrapper.doesEdgeTypeExists(edgeType))
+
+      val extraData = Seq(Row(4, 2, "enemy"))
+
+      sqlContext.createDataFrame(sc.parallelize(extraData),
+        TestUtils.testSchemaForEdges).write
+        .format("org.apache.spark.orientdb.graphs")
+        .option("dburl", ORIENTDB_CONNECTION_URL)
+        .option("user", ORIENTDB_USER)
+        .option("password", ORIENTDB_PASSWORD)
+        .option("vertextype", vertexType)
+        .option("edgetype", edgeType)
+        .mode(SaveMode.Ignore)
+        .save()
+
+      val loadedDf = sqlContext.read
+                      .format("org.apache.spark.orientdb.graphs")
+                      .option("dburl", ORIENTDB_CONNECTION_URL)
+                      .option("user", ORIENTDB_USER)
+                      .option("password", ORIENTDB_PASSWORD)
+                      .option("edgetype", edgeType)
+                      .load()
+
+      checkAnswer(
+        loadedDf.selectExpr("count(*)"),
+        Seq(Row(4))
+      )
+    } finally {
+      try {
+        orientDBGraphEdgeWrapper.delete(edgeType, null)
+        orientDBGraphVertexWrapper.delete(vertexType, null)
+      } finally {
+        edge_connection.dropEdgeType(edgeType)
+        vertex_connection.dropVertexType(vertexType)
+      }
+    }
+  }
 }
