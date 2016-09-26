@@ -16,7 +16,6 @@ import scala.collection.JavaConversions._
 private[orientdb] class OrientDBVertexWriter(orientDBWrapper: OrientDBGraphVertexWrapper,
                                              orientDBClientFactory: OrientDBCredentials => OrientDBClientFactory)
                   extends Serializable {
-  private val log = LoggerFactory.getLogger(getClass)
 
   private[orientdb] def createOrientDBVertex(data: DataFrame, params: MergedParameters): Unit = {
     val dfSchema = data.schema

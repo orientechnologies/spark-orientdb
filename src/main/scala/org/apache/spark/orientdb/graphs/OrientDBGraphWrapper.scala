@@ -136,7 +136,6 @@ class OrientDBGraphVertexWrapper extends OrientDBGraphWrapper {
       } else {
         queryStr = query
       }
-      println(queryStr)
       vertices = Lists.newArrayList[Vertex](
         connection.command(new OCommandSQL(queryStr))
           .execute().asInstanceOf[java.lang.Iterable[Vertex]])
@@ -326,7 +325,6 @@ class OrientDBGraphEdgeWrapper extends OrientDBGraphWrapper {
       } else {
         queryStr = query
       }
-      println(queryStr)
       edges = Lists.newArrayList(
         connection.command(new OCommandSQL(queryStr))
           .execute().asInstanceOf[java.lang.Iterable[Edge]])

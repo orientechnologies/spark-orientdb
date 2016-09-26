@@ -114,7 +114,6 @@ class OrientDBDocumentWrapper extends Serializable {
           queryStr = s"$query $filters"
         }
       } else queryStr = query
-      println(queryStr)
       documents = connection.query(new OSQLSynchQuery[ODocument](queryStr))
     }
 
