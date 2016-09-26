@@ -1,11 +1,11 @@
 package org.apache.spark.orientdb.graphs
 
-import org.apache.spark.sql.types.{IntegerType, StringType, StructField, StructType}
-import org.apache.spark.sql.{Row, SQLContext, SaveMode}
 import org.apache.spark.{SparkConf, SparkContext}
+import org.apache.spark.sql.{Row, SQLContext, SaveMode}
+import org.apache.spark.sql.types.{StringType, StructField, StructType}
 import org.graphframes.GraphFrame
 
-object MainApplication extends App {
+object GraphFrameTest extends App {
   val conf = new SparkConf().setAppName("MainApplication").setMaster("local[*]")
   val sc = new SparkContext(conf)
   sc.setLogLevel("WARN")
@@ -23,12 +23,12 @@ object MainApplication extends App {
     .save()
 
   val vertices = sqlContext.read
-                .format("org.apache.spark.orientdb.graphs")
-                .option("dburl", "remote:127.0.0.1:2424/GratefulDeadConcerts")
-                .option("user", "root")
-                .option("password", "root")
-                .option("vertextype", "v104")
-                .load()
+    .format("org.apache.spark.orientdb.graphs")
+    .option("dburl", "remote:127.0.0.1:2424/GratefulDeadConcerts")
+    .option("user", "root")
+    .option("password", "root")
+    .option("vertextype", "v104")
+    .load()
 
   var inVertex: Integer = null
   var outVertex: Integer = null
@@ -56,12 +56,12 @@ object MainApplication extends App {
     .save()
 
   val edges = sqlContext.read
-              .format("org.apache.spark.orientdb.graphs")
-              .option("dburl", "remote:127.0.0.1:2424/GratefulDeadConcerts")
-              .option("user", "root")
-              .option("password", "root")
-              .option("edgetype", "e104")
-              .load()
+    .format("org.apache.spark.orientdb.graphs")
+    .option("dburl", "remote:127.0.0.1:2424/GratefulDeadConcerts")
+    .option("user", "root")
+    .option("password", "root")
+    .option("edgetype", "e104")
+    .load()
 
   edges.show()
 
