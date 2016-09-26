@@ -136,7 +136,7 @@
                 <artifactId>maven-jar-plugin</artifactId>
                 <version>2.3.2</version>
                 <configuration>
-                    <finalName>spark-orientdb_${scala.binary.version}</finalName>
+                    <finalName>spark-orientdb-${spark.version}_${scala.binary.version}</finalName>
                 </configuration>
             </plugin>
         </plugins>
