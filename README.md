@@ -8,6 +8,12 @@ OrientDB documentation
 
 Here is the latest documentation on [OrientDB](http://orientdb.com/orientdb/)
 
+Compatibility
+=============
+
+`Spark`: 1.6+
+`OrientDB`: 2.2.0+
+
 Scala api
 =========
 
