@@ -1,6 +1,8 @@
 spark-orientdb
 ==============
 
+[ ![Download](https://api.bintray.com/packages/sbcd90/org.apache.spark/spark-orientdb-1.6.2_2.10/images/download.svg) ](https://bintray.com/sbcd90/org.apache.spark/spark-orientdb-1.6.2_2.10/_latestVersion)
+
 Apache Spark datasource for OrientDB
 
 OrientDB documentation

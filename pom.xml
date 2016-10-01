@@ -6,7 +6,7 @@
 
     <groupId>org.apache.spark</groupId>
     <artifactId>spark-orientdb</artifactId>
-    <version>1.0-SNAPSHOT</version>
+    <version>1.0</version>
 
     <properties>
         <scala.version>2.10.5</scala.version>
@@ -73,6 +73,13 @@
         </dependency>
     </dependencies>
 
+    <distributionManagement>
+        <repository>
+            <id>bintray-sbcd90-spark-orientdb</id>
+            <url>https://api.bintray.com/maven/sbcd90/org.apache.spark/spark-orientdb-1.6.2_2.10/;publish=1</url>
+        </repository>
+    </distributionManagement>
+
     <build>
         <plugins>
             <plugin>
@@ -80,8 +87,8 @@
                 <artifactId>maven-compiler-plugin</artifactId>
                 <version>3.5.1</version>
                 <configuration>
-                    <source>1.8</source>
-                    <target>1.8</target>
+                    <source>1.5</source>
+                    <target>1.5</target>
                 </configuration>
             </plugin>
             <plugin>
