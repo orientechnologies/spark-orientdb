@@ -1,7 +1,6 @@
 spark-orientdb
 ==============
-
-[ ![Download](https://api.bintray.com/packages/sbcd90/org.apache.spark/spark-orientdb-1.6.2_2.10/images/download.svg) ](https://bintray.com/sbcd90/org.apache.spark/spark-orientdb-1.6.2_2.10/_latestVersion)
+[![Build Status](https://travis-ci.org/sbcd90/spark-orientdb.svg?branch=master)](https://travis-ci.org/sbcd90/spark-orientdb)    [ ![Download](https://api.bintray.com/packages/sbcd90/org.apache.spark/spark-orientdb-1.6.2_2.10/images/download.svg) ](https://bintray.com/sbcd90/org.apache.spark/spark-orientdb-1.6.2_2.10/_latestVersion)
 
 Apache Spark datasource for OrientDB
 
@@ -15,6 +14,31 @@ Compatibility
 
 `Spark`: 1.6+
 `OrientDB`: 2.2.0+
+
+Getting Started
+===============
+
+- Add the repository
+
+```
+<repository>
+   <id>bintray</id>
+   <name>bintray</name>
+   <url>https://dl.bintray.com/sbcd90/org.apache.spark/</url>
+</repository>
+```
+
+### For Spark 1.6
+
+- Add the datasource as a maven dependency
+
+```
+<dependency>
+   <groupId>org.apache.spark</groupId>
+   <artifactId>spark-orientdb-1.6.2_2.10</artifactId>
+   <version>1.2</version>
+</dependency>
+```
 
 Scala api
 =========
