@@ -11,7 +11,7 @@
     <properties>
         <scala.version>2.10.5</scala.version>
         <scala.binary.version>2.10</scala.binary.version>
-        <spark.version>1.6.2</spark.version>
+        <spark.version>2.0.0</spark.version>
         <orientdb.graphdb.version>2.2.6</orientdb.graphdb.version>
     </properties>
 
@@ -76,7 +76,7 @@
     <distributionManagement>
         <repository>
             <id>bintray-sbcd90-spark-orientdb</id>
-            <url>https://api.bintray.com/maven/sbcd90/org.apache.spark/spark-orientdb-1.6.2_2.10/;publish=1</url>
+            <url>https://api.bintray.com/maven/sbcd90/org.apache.spark/spark-orientdb-${spark.version}_${scala.binary.version}/;publish=1</url>
         </repository>
     </distributionManagement>
 
