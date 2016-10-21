@@ -36,7 +36,19 @@ Getting Started
 <dependency>
    <groupId>org.apache.spark</groupId>
    <artifactId>spark-orientdb-1.6.2_2.10</artifactId>
-   <version>1.2</version>
+   <version>1.3</version>
+</dependency>
+```
+
+### For Spark 2.0
+
+- Add the datasource as a maven dependency
+
+```
+<dependency>
+   <groupId>org.apache.spark</groupId>
+   <artifactId>spark-orientdb-2.0.0_2.10</artifactId>
+   <version>1.3</version>
 </dependency>
 ```
 
