@@ -225,7 +225,7 @@ val g = GraphFrame(loadedVerticesDf, loadedEdgesDf)
 
 ## Examples
 
-### OrientDB Documents
+### An example Spark application with OrientDB Documents
 
 ```
 package org.apache.spark.orientdb.documents
@@ -261,7 +261,7 @@ object DataFrameTest extends App {
 }
 ```
 
-### OrientDB Graph
+### An example Spark application with OrientDB Graph
 
 ```
 package org.apache.spark.orientdb.graphs
