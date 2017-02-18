@@ -143,11 +143,11 @@ private[orientdb] class OrientDBEdgeWriter(orientDBWrapper: OrientDBGraphEdgeWra
 
     val connector = orientDBWrapper.getConnection(params)
     val createdEdgeType = connector.createEdgeType(edgeType)
-
-    dfSchema.foreach(field => {
-      createdEdgeType.createProperty(field.name,
-        Conversions.sparkDTtoOrientDBDT(field.dataType))
-    })
+    if (!params.lightWeightEdge) {
+      dfSchema.foreach(field => {
+        createdEdgeType.createProperty(field.name, Conversions.sparkDTtoOrientDBDT(field.dataType))
+      })
+    }
   }
 
   private[orientdb] def dropOrientDBEdge(params: MergedParameters): Unit = {
@@ -178,8 +178,12 @@ private[orientdb] class OrientDBEdgeWriter(orientDBWrapper: OrientDBGraphEdgeWra
       createOrientDBEdge(data, params)
     }
 
-    val vertexType = params.vertexType match {
-      case Some(vertexTypeName) => vertexTypeName
+    val (inVertexType, outVertexType) = params.vertexType match {
+      case Some(vertexTypeNames) =>
+        val cols = vertexTypeNames.split(",")
+        if (cols.length == 1) (cols(0), cols(0))
+        else if (cols.length == 2) (cols(0), cols(1))
+        else throw new IllegalArgumentException("More than 2 'vertextype' specified")
       case None =>
         throw new IllegalArgumentException("Saving edges also require a vertex type specified by " +
           "'vertextype' parameter")
@@ -214,43 +218,49 @@ private[orientdb] class OrientDBEdgeWriter(orientDBWrapper: OrientDBGraphEdgeWra
           }
 
           val inVertices: List[Vertex] = connection
-            .command(new OCommandSQL(s"select * from $vertexType where id = '$inVertexName'")).execute()
-              .asInstanceOf[java.lang.Iterable[Vertex]].toList
+            .command(new OCommandSQL(s"select * from $inVertexType where id = '$inVertexName'"))
+            .execute()
+            .asInstanceOf[java.lang.Iterable[Vertex]]
+            .toList
 
-          var inVertex: Vertex = null
-          if (inVertices.isEmpty) {
-            println(s"in Vertex $inVertexName does not exist. Creating it...")
-            inVertex = connection.addVertex(vertexType, null)
-            inVertex.setProperty("id", inVertexName)
-          } else {
-            inVertex = inVertices.head
-          }
+          val inVertex: Option[Vertex] =
+            if (inVertices.isEmpty && params.createVertexIfNotExist) {
+              // log.info(s"in Vertex $inVertexName does not exist. Creating it...")
+              val v = connection.addVertex(inVertexType, null)
+              v.setProperty("id", inVertexName)
+              Some(v)
+            } else {
+              inVertices.headOption
+            }
 
           val outVertices: List[Vertex] = connection
-            .command(new OCommandSQL(s"select * from $vertexType where id = '$outVertexName'")).execute()
-              .asInstanceOf[java.lang.Iterable[Vertex]].toList
+            .command(new OCommandSQL(s"select * from $outVertexType where id = '$outVertexName'"))
+            .execute()
+            .asInstanceOf[java.lang.Iterable[Vertex]]
+            .toList
 
-          var outVertex: Vertex = null
-          if (outVertices.isEmpty) {
-            println(s"out Vertex $outVertexName does not exist. Creating it...")
-            outVertex = connection.addVertex(vertexType, null)
-            outVertex.setProperty("id", outVertexName)
-          } else {
-            outVertex = outVertices.head
+          val outVertex: Option[Vertex] =
+            if (outVertices.isEmpty && params.createVertexIfNotExist) {
+              // log.info(s"out Vertex $outVertexName does not exist. Creating it...")
+              val v = connection.addVertex(outVertexType, null)
+              v.setProperty("id", outVertexName)
+              Some(v)
+            } else {
+              outVertices.headOption
+            }
+
+          for {
+            in <- inVertex
+            out <- outVertex
+          } {
+            val createdEdge = connection.addEdge(null, in, out, params.edgeType.get)
+            for (i <- fields.indices) {
+              val sparkType = fields(i).dataType
+              val orientDBType = Conversions.sparkDTtoOrientDBDT(sparkType)
+              createdEdge.setProperty(fields(i).name, row.getAs[sparkType.type](i), orientDBType)
+            }
           }
 
-          val createdEdge = connection.addEdge(null, inVertex,
-            outVertex, params.edgeType.get)
-
-          var count = 0
-          while (count < fields.length) {
-            val sparkType = fields(count).dataType
-            val orientDBType = Conversions
-              .sparkDTtoOrientDBDT(sparkType)
-            createdEdge.setProperty(fields(count).name,
-              row.getAs[sparkType.type](count), orientDBType)
-            count = count + 1
-          }
           graphFactory.close()
         }
       })
