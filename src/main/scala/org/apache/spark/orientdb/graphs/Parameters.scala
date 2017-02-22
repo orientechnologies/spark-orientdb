@@ -34,6 +34,12 @@ private[orientdb] object Parameters {
       */
     def edgeType: Option[String] = parameters.get("edgetype").orElse(None)
 
+    def createVertexIfNotExist: Boolean = parameters.get("createVertexIfNotExist").isDefined &&
+                                          parameters("createVertexIfNotExist") == "true"
+
+    def lightWeightEdge: Boolean = parameters.get("lightWeightEdge").isDefined &&
+                                   parameters("lightWeightEdge") == "true"
+
     /**
       * The Orient DB Graph sql query to be used for loading data
       */
