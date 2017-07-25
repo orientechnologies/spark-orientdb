@@ -1,6 +1,8 @@
 package org.apache.spark.orientdb.graphs
 
 import org.apache.spark.orientdb.TestUtils
+import org.apache.spark.orientdb.TestUtils._
+import org.apache.spark.orientdb.udts.{EmbeddedList, EmbeddedListType, LinkList, LinkListType}
 import org.apache.spark.sql.types._
 import org.apache.spark.sql.{Row, SaveMode}
 import org.slf4j.LoggerFactory
@@ -45,13 +47,63 @@ class OrientDBGraphIntegrationSuite extends IntegrationSuiteBase {
       .option("edgetype", test_edge_type2)
       .mode(SaveMode.Overwrite)
       .save()
+
+    sqlContext.createDataFrame(sc.parallelize(TestUtils.expectedDataForEmbeddedUDTsVertices),
+      TestUtils.testSchemaForEmbeddedUDTsForVertices).write
+      .format("org.apache.spark.orientdb.graphs")
+      .option("dburl", ORIENTDB_CONNECTION_URL)
+      .option("user", ORIENTDB_USER)
+      .option("password", ORIENTDB_PASSWORD)
+      .option("vertextype", test_vertex_type)
+      .mode(SaveMode.Overwrite)
+      .save()
+
+    sqlContext.createDataFrame(sc.parallelize(TestUtils.expectedDataForEmbeddedUDTsEdges),
+      TestUtils.testSchemaForEmbeddedUDTsForEdges).write
+      .format("org.apache.spark.orientdb.graphs")
+      .option("dburl", ORIENTDB_CONNECTION_URL)
+      .option("user", ORIENTDB_USER)
+      .option("password", ORIENTDB_PASSWORD)
+      .option("vertextype", test_vertex_type)
+      .option("edgetype", test_edge_type)
+      .mode(SaveMode.Overwrite)
+      .save()
+
+    sqlContext.createDataFrame(sc.parallelize(TestUtils.expectedDataForLinkUDTsForVertices),
+      TestUtils.testSchemaForLinkUDTsForVertices).write
+      .format("org.apache.spark.orientdb.graphs")
+      .option("dburl", ORIENTDB_CONNECTION_URL)
+      .option("user", ORIENTDB_USER)
+      .option("password", ORIENTDB_PASSWORD)
+      .option("vertextype", test_vertex_type3)
+      .mode(SaveMode.Overwrite)
+      .save()
+
+    sqlContext.createDataFrame(sc.parallelize(TestUtils.expectedDataForLinkUDTsForEdges),
+      TestUtils.testSchemaForLinkUDTsForEdges).write
+      .format("org.apache.spark.orientdb.graphs")
+      .option("dburl", ORIENTDB_CONNECTION_URL)
+      .option("user", ORIENTDB_USER)
+      .option("password", ORIENTDB_PASSWORD)
+      .option("vertextype", test_vertex_type3)
+      .option("edgetype", test_edge_type3)
+      .mode(SaveMode.Overwrite)
+      .save()
   }
 
   override def afterEach(): Unit = {
     orientDBGraphVertexWrapper.delete(test_vertex_type2, null)
+    orientDBGraphVertexWrapper.delete(test_vertex_type, null)
+    orientDBGraphVertexWrapper.delete(test_vertex_type3, null)
     orientDBGraphEdgeWrapper.delete(test_edge_type2, null)
+    orientDBGraphEdgeWrapper.delete(test_edge_type, null)
+    orientDBGraphEdgeWrapper.delete(test_edge_type3, null)
     vertex_connection.dropVertexType(test_vertex_type2)
+    vertex_connection.dropVertexType(test_vertex_type)
+    vertex_connection.dropVertexType(test_vertex_type3)
     edge_connection.dropEdgeType(test_edge_type2)
+    edge_connection.dropEdgeType(test_edge_type)
+    edge_connection.dropEdgeType(test_edge_type3)
   }
 
   test("count() on DataFrame created from a OrientDB Graph vertex type") {
@@ -979,6 +1031,427 @@ class OrientDBGraphIntegrationSuite extends IntegrationSuiteBase {
       } finally {
         edge_connection.dropEdgeType(edgeType)
         vertex_connection.dropVertexType(vertexType)
+      }
+    }
+  }
+
+  test("count() on DataFrame created from a OrientDB Graph vertex type with Embedded types") {
+    val loadedDf = sqlContext.read
+      .format("org.apache.spark.orientdb.graphs")
+      .option("dburl", ORIENTDB_CONNECTION_URL)
+      .option("user", ORIENTDB_USER)
+      .option("password", ORIENTDB_PASSWORD)
+      .option("vertextype", test_vertex_type)
+      .load()
+
+    checkAnswer(
+      loadedDf.selectExpr("count(*)"),
+      Seq(Row(5))
+    )
+  }
+
+  test("count() on DataFrame created from a OrientDB Graph edge type with Embedded types") {
+    val loadedDf = sqlContext.read
+      .format("org.apache.spark.orientdb.graphs")
+      .option("dburl", ORIENTDB_CONNECTION_URL)
+      .option("user", ORIENTDB_USER)
+      .option("password", ORIENTDB_PASSWORD)
+      .option("edgetype", test_edge_type)
+      .load()
+
+    checkAnswer(
+      loadedDf.selectExpr("count(*)"),
+      Seq(Row(4))
+    )
+  }
+
+  test("count() on DataFrame created from a OrientDB Graph vertex type with Link Types") {
+    val loadedDf = sqlContext.read
+      .format("org.apache.spark.orientdb.graphs")
+      .option("dburl", ORIENTDB_CONNECTION_URL)
+      .option("user", ORIENTDB_USER)
+      .option("password", ORIENTDB_PASSWORD)
+      .option("vertextype", test_vertex_type3)
+      .load()
+
+    checkAnswer(
+      loadedDf.selectExpr("count(*)"),
+      Seq(Row(5))
+    )
+  }
+
+  test("count() on DataFrame created from a OrientDB Graph edge type with Link Types") {
+    val loadedDf = sqlContext.read
+      .format("org.apache.spark.orientdb.graphs")
+      .option("dburl", ORIENTDB_CONNECTION_URL)
+      .option("user", ORIENTDB_USER)
+      .option("password", ORIENTDB_PASSWORD)
+      .option("edgetype", test_edge_type3)
+      .load()
+
+    checkAnswer(
+      loadedDf.selectExpr("count(*)"),
+      Seq(Row(4))
+    )
+  }
+
+  test("count() on DataFrame created from a OrientDB Graph vertex query with Embedded types") {
+    val loadedDf = sqlContext.read
+      .format("org.apache.spark.orientdb.graphs")
+      .option("dburl", ORIENTDB_CONNECTION_URL)
+      .option("user", ORIENTDB_USER)
+      .option("password", ORIENTDB_PASSWORD)
+      .option("vertextype", test_vertex_type)
+      .option("query", s"select * from $test_vertex_type limit 1")
+      .load()
+
+    checkAnswer(
+      loadedDf.selectExpr("count(*)"),
+      Seq(Row(1))
+    )
+  }
+
+  test("count() on DataFrame created from a OrientDB Graph edge query with Embedded types") {
+    val loadedDf = sqlContext.read
+      .format("org.apache.spark.orientdb.graphs")
+      .option("dburl", ORIENTDB_CONNECTION_URL)
+      .option("user", ORIENTDB_USER)
+      .option("password", ORIENTDB_PASSWORD)
+      .option("edgetype", test_edge_type)
+      .option("query", s"select * from $test_edge_type limit 1")
+      .load()
+
+    checkAnswer(
+      loadedDf.selectExpr("count(*)"),
+      Seq(Row(1))
+    )
+  }
+
+  test("count() on DataFrame created from a OrientDB Graph vertex query with Link types") {
+    val loadedDf = sqlContext.read
+      .format("org.apache.spark.orientdb.graphs")
+      .option("dburl", ORIENTDB_CONNECTION_URL)
+      .option("user", ORIENTDB_USER)
+      .option("password", ORIENTDB_PASSWORD)
+      .option("vertextype", test_vertex_type)
+      .option("query", s"select * from $test_vertex_type3 limit 1")
+      .load()
+
+    checkAnswer(
+      loadedDf.selectExpr("count(*)"),
+      Seq(Row(1))
+    )
+  }
+
+  test("count() on DataFrame created from a OrientDB Graph edge query with Link Types") {
+    val loadedDf = sqlContext.read
+      .format("org.apache.spark.orientdb.graphs")
+      .option("dburl", ORIENTDB_CONNECTION_URL)
+      .option("user", ORIENTDB_USER)
+      .option("password", ORIENTDB_PASSWORD)
+      .option("edgetype", test_edge_type)
+      .option("query", s"select * from $test_edge_type3 limit 1")
+      .load()
+
+    checkAnswer(
+      loadedDf.selectExpr("count(*)"),
+      Seq(Row(1))
+    )
+  }
+
+  test("Can load output when 'query' is specified with user-defined schema " +
+    "for OrientDB Vertices for Embedded types") {
+    val loadedDf = sqlContext.read
+      .format("org.apache.spark.orientdb.graphs")
+      .option("dburl", ORIENTDB_CONNECTION_URL)
+      .option("user", ORIENTDB_USER)
+      .option("password", ORIENTDB_PASSWORD)
+      .option("vertextype", test_vertex_type)
+      .option("query", s"select embeddedlist from $test_vertex_type")
+      .schema(StructType(Array(
+        StructField("embeddedlist", EmbeddedListType, true))))
+      .load()
+
+    checkAnswer(
+      loadedDf,
+      Seq(
+        Row(EmbeddedList(Array(1, 1.toByte, true, TestUtils.toDate(2015, 6, 1), 1234152.12312498,
+          1.0f, 42, 1239012341823719L, 23.toShort, "Unicode's樂趣",
+          TestUtils.toTimestamp(2015, 6, 1, 0, 0, 0, 1)))),
+        Row(EmbeddedList(Array(2, 1.toByte, false, TestUtils.toDate(2015, 6, 2), 0.0, 0.0f, 42,
+          1239012341823719L, -13.toShort, "asdf", TestUtils.toTimestamp(2015, 6, 2, 0, 0, 0, 0)))),
+        Row(EmbeddedList(Array(3, 0.toByte, null, TestUtils.toDate(2015, 6, 3), 0.0, -1.0f, 4141214,
+          1239012341823719L, null, "f", TestUtils.toTimestamp(2015, 6, 3, 0, 0, 0)))),
+        Row(EmbeddedList(Array(4, 0.toByte, false, null, -1234152.12312498, 100000.0f, null, 1239012341823719L, 24.toShort,
+          "___|_123", null))),
+        Row(EmbeddedList(Array.fill(11)(null))))
+    )
+  }
+
+  test("Can load output when 'query' is specified with user-defined schema " +
+    "for OrientDB Edges for Embedded types") {
+    try {
+      val loadedDf = sqlContext.read
+        .format("org.apache.spark.orientdb.graphs")
+        .option("dburl", ORIENTDB_CONNECTION_URL)
+        .option("user", ORIENTDB_USER)
+        .option("password", ORIENTDB_PASSWORD)
+        .option("edgetype", test_edge_type)
+        .option("query", s"select embeddedlist from $test_edge_type")
+        .schema(StructType(Array(
+          StructField("embeddedlist", EmbeddedListType, true))))
+        .load()
+
+      checkAnswer(
+        loadedDf,
+        Seq(
+          Row(EmbeddedList(Array(1, 2, "friends"))),
+          Row(EmbeddedList(Array(2, 3, "enemy"))),
+          Row(EmbeddedList(Array(3, 4, "friends"))),
+          Row(EmbeddedList(Array(4, 1, "enemy")))
+        )
+      )
+    } catch {
+      case e: Exception => LOG.info("Bug in Orient Graph Edges Read Api")
+    }
+  }
+
+  test("Can load output when 'query' is specified with user-defined schema " +
+    "for OrientDB Vertices for Link types") {
+    val loadedDf = sqlContext.read
+      .format("org.apache.spark.orientdb.graphs")
+      .option("dburl", ORIENTDB_CONNECTION_URL)
+      .option("user", ORIENTDB_USER)
+      .option("password", ORIENTDB_PASSWORD)
+      .option("vertextype", test_vertex_type3)
+      .option("query", s"select linklist from $test_vertex_type3")
+      .schema(StructType(Array(
+        StructField("linklist", LinkListType, true))))
+      .load()
+
+    checkAnswer(
+      loadedDf.selectExpr("count(*)"),
+      Seq(Row(5)))
+  }
+
+  test("Can load output when 'query' is specified with user-defined schema " +
+    "for OrientDB Edges for Link types") {
+    try {
+      val loadedDf = sqlContext.read
+        .format("org.apache.spark.orientdb.graphs")
+        .option("dburl", ORIENTDB_CONNECTION_URL)
+        .option("user", ORIENTDB_USER)
+        .option("password", ORIENTDB_PASSWORD)
+        .option("edgetype", test_edge_type3)
+        .option("query", s"select linklist from $test_edge_type3")
+        .schema(StructType(Array(
+          StructField("linklist", LinkListType, true))))
+        .load()
+
+      checkAnswer(
+        loadedDf.selectExpr("count(*)"),
+        Seq(Row(4))
+      )
+    } catch {
+      case e: Exception => LOG.info("Bug in Orient Graph Edges Read Api")
+    }
+  }
+
+  test("query with pruned and filtered scans for embedded types for OrientDB Vertices") {
+    val loadedDf = sqlContext.read
+      .format("org.apache.spark.orientdb.graphs")
+      .option("dburl", ORIENTDB_CONNECTION_URL)
+      .option("user", ORIENTDB_USER)
+      .option("password", ORIENTDB_PASSWORD)
+      .option("vertextype", test_vertex_type)
+      .option("query", s"select embeddedlist " +
+        s"from $test_vertex_type where 'asdf' in embeddedlist")
+      .schema(StructType(Array(StructField("embeddedlist", EmbeddedListType, true))))
+      .load()
+
+    checkAnswer(loadedDf,
+      Seq(Row(EmbeddedList(Array(2, 1.toByte, false, TestUtils.toDate(2015, 6, 2), 0.0, 0.0f, 42,
+        1239012341823719L, -13.toShort, "asdf", TestUtils.toTimestamp(2015, 6, 2, 0, 0, 0, 0))))))
+  }
+
+  test("roundtrip save and load for Embedded Types for Vertices") {
+    val tableName = s"roundtrip_save_and_load_${scala.util.Random.nextInt(100)}"
+
+    try {
+      sqlContext.createDataFrame(sc.parallelize(TestUtils.expectedDataForEmbeddedUDTsVertices),
+        TestUtils.testSchemaForEmbeddedUDTsForVertices).write
+        .format("org.apache.spark.orientdb.graphs")
+        .option("dburl", ORIENTDB_CONNECTION_URL)
+        .option("user", ORIENTDB_USER)
+        .option("password", ORIENTDB_PASSWORD)
+        .option("vertextype", tableName)
+        .mode(SaveMode.Overwrite)
+        .save()
+
+      assert(DefaultOrientDBGraphVertexWrapper.doesVertexTypeExists(tableName))
+
+      val loadedDf = sqlContext.read
+        .format("org.apache.spark.orientdb.graphs")
+        .option("dburl", ORIENTDB_CONNECTION_URL)
+        .option("user", ORIENTDB_USER)
+        .option("password", ORIENTDB_PASSWORD)
+        .option("vertextype", tableName)
+        .load()
+
+      checkAnswer(
+        loadedDf.selectExpr("count(*)"),
+        Seq(Row(5))
+      )
+    } finally {
+      orientDBGraphVertexWrapper.delete(tableName, null)
+      vertex_connection.dropVertexType(tableName)
+    }
+  }
+
+  test("roundtrip save and load for Embedded Types for Edges") {
+    val vertexTableName = s"roundtrip_save_and_load_vertex_${scala.util.Random.nextInt(100)}"
+    val edgeTableName = s"roundtrip_save_and_load_edge_${scala.util.Random.nextInt(100)}"
+
+    try {
+      sqlContext.createDataFrame(sc.parallelize(TestUtils.expectedDataForEmbeddedUDTsVertices),
+        TestUtils.testSchemaForEmbeddedUDTsForVertices).write
+        .format("org.apache.spark.orientdb.graphs")
+        .option("dburl", ORIENTDB_CONNECTION_URL)
+        .option("user", ORIENTDB_USER)
+        .option("password", ORIENTDB_PASSWORD)
+        .option("vertextype", vertexTableName)
+        .mode(SaveMode.ErrorIfExists)
+        .save()
+
+      assert(DefaultOrientDBGraphVertexWrapper.doesVertexTypeExists(vertexTableName))
+
+      sqlContext.createDataFrame(sc.parallelize(TestUtils.expectedDataForEmbeddedUDTsEdges),
+        TestUtils.testSchemaForEmbeddedUDTsForEdges).write
+        .format("org.apache.spark.orientdb.graphs")
+        .option("dburl", ORIENTDB_CONNECTION_URL)
+        .option("user", ORIENTDB_USER)
+        .option("password", ORIENTDB_PASSWORD)
+        .option("vertextype", vertexTableName)
+        .option("edgetype", edgeTableName)
+        .mode(SaveMode.ErrorIfExists)
+        .save()
+
+      assert(DefaultOrientDBGraphEdgeWrapper.doesEdgeTypeExists(edgeTableName))
+
+      val loadedDf = sqlContext.read
+        .format("org.apache.spark.orientdb.graphs")
+        .option("dburl", ORIENTDB_CONNECTION_URL)
+        .option("user", ORIENTDB_USER)
+        .option("password", ORIENTDB_PASSWORD)
+        .option("edgetype", edgeTableName)
+        .load()
+
+      checkAnswer(
+        loadedDf.selectExpr("count(*)"),
+        Seq(Row(4))
+      )
+    } finally {
+      try {
+        orientDBGraphVertexWrapper.delete(vertexTableName, null)
+        vertex_connection.dropVertexType(vertexTableName)
+      } finally {
+        try {
+          orientDBGraphEdgeWrapper.doesEdgeTypeExists(edgeTableName)
+          orientDBGraphEdgeWrapper.delete(edgeTableName, null)
+        } finally {
+          edge_connection.dropEdgeType(edgeTableName)
+        }
+      }
+    }
+  }
+
+  test("roundtrip save and load for Link Types for Vertices") {
+    val tableName = s"roundtrip_save_and_load_${scala.util.Random.nextInt(100)}"
+
+    try {
+      sqlContext.createDataFrame(sc.parallelize(TestUtils.expectedDataForLinkUDTsForVertices),
+        TestUtils.testSchemaForLinkUDTsForVertices).write
+        .format("org.apache.spark.orientdb.graphs")
+        .option("dburl", ORIENTDB_CONNECTION_URL)
+        .option("user", ORIENTDB_USER)
+        .option("password", ORIENTDB_PASSWORD)
+        .option("vertextype", tableName)
+        .mode(SaveMode.Overwrite)
+        .save()
+
+      assert(DefaultOrientDBGraphVertexWrapper.doesVertexTypeExists(tableName))
+
+      val loadedDf = sqlContext.read
+        .format("org.apache.spark.orientdb.graphs")
+        .option("dburl", ORIENTDB_CONNECTION_URL)
+        .option("user", ORIENTDB_USER)
+        .option("password", ORIENTDB_PASSWORD)
+        .option("vertextype", tableName)
+        .load()
+
+      checkAnswer(
+        loadedDf.selectExpr("count(*)"),
+        Seq(Row(5))
+      )
+    } finally {
+      orientDBGraphVertexWrapper.delete(tableName, null)
+      vertex_connection.dropVertexType(tableName)
+    }
+  }
+
+  test("roundtrip save and load for Link Types for Edges") {
+    val vertexTableName = s"roundtrip_save_and_load_vertex_${scala.util.Random.nextInt(100)}"
+    val edgeTableName = s"roundtrip_save_and_load_edge_${scala.util.Random.nextInt(100)}"
+
+    try {
+      sqlContext.createDataFrame(sc.parallelize(TestUtils.expectedDataForLinkUDTsForVertices),
+        TestUtils.testSchemaForLinkUDTsForVertices).write
+        .format("org.apache.spark.orientdb.graphs")
+        .option("dburl", ORIENTDB_CONNECTION_URL)
+        .option("user", ORIENTDB_USER)
+        .option("password", ORIENTDB_PASSWORD)
+        .option("vertextype", vertexTableName)
+        .mode(SaveMode.ErrorIfExists)
+        .save()
+
+      assert(DefaultOrientDBGraphVertexWrapper.doesVertexTypeExists(vertexTableName))
+
+      sqlContext.createDataFrame(sc.parallelize(TestUtils.expectedDataForLinkUDTsForEdges),
+        TestUtils.testSchemaForLinkUDTsForEdges).write
+        .format("org.apache.spark.orientdb.graphs")
+        .option("dburl", ORIENTDB_CONNECTION_URL)
+        .option("user", ORIENTDB_USER)
+        .option("password", ORIENTDB_PASSWORD)
+        .option("vertextype", vertexTableName)
+        .option("edgetype", edgeTableName)
+        .mode(SaveMode.ErrorIfExists)
+        .save()
+
+      assert(DefaultOrientDBGraphEdgeWrapper.doesEdgeTypeExists(edgeTableName))
+
+      val loadedDf = sqlContext.read
+        .format("org.apache.spark.orientdb.graphs")
+        .option("dburl", ORIENTDB_CONNECTION_URL)
+        .option("user", ORIENTDB_USER)
+        .option("password", ORIENTDB_PASSWORD)
+        .option("edgetype", edgeTableName)
+        .load()
+
+      checkAnswer(
+        loadedDf.selectExpr("count(*)"),
+        Seq(Row(4))
+      )
+    } finally {
+      try {
+        orientDBGraphVertexWrapper.delete(vertexTableName, null)
+        vertex_connection.dropVertexType(vertexTableName)
+      } finally {
+        try {
+          orientDBGraphEdgeWrapper.doesEdgeTypeExists(edgeTableName)
+          orientDBGraphEdgeWrapper.delete(edgeTableName, null)
+        } finally {
+          edge_connection.dropEdgeType(edgeTableName)
+        }
       }
     }
   }

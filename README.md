@@ -52,6 +52,16 @@ Getting Started
 </dependency>
 ```
 
+### For Spark 2.1
+
+```
+<dependency>
+   <groupId>org.apache.spark</groupId>
+   <artifactId>spark-orientdb-2.1.1_2.11</artifactId>
+   <version>1.3</version>
+</dependency>
+```
+
 Scala api
 =========
 
@@ -104,6 +114,53 @@ val loadedDf = sqlContext.read
       .option("class", test_table)
       .option("query", s"select * from $test_table where teststring = 'asdf'")
       .load()
+```
+
+#### Support for Embedded Types( Since Spark 2.1 release):
+
+```
+val testSchemaForEmbeddedUDTs: StructType = {
+    StructType(Seq(
+      StructField("embeddedlist", EmbeddedListType),
+      StructField("embeddedset", EmbeddedSetType),
+      StructField("embeddedmap", EmbeddedMapType)
+    ))
+  }
+```
+
+```
+val expectedDataForEmbeddedUDTs: Seq[Row] = Seq(
+    Row(EmbeddedList(Array(1, 1.toByte, true, TestUtils.toDate(2015, 6, 1), 1234152.12312498,
+      1.0f, 42, 1239012341823719L, 23.toShort, "Unicode's樂趣",
+      TestUtils.toTimestamp(2015, 6, 1, 0, 0, 0, 1))),
+      EmbeddedSet(Array(1, 1.toByte, true, TestUtils.toDate(2015, 6, 1), 1234152.12312498,
+        1.0f, 42, 1239012341823719L, 23.toShort, "Unicode's樂趣",
+        TestUtils.toTimestamp(2015, 6, 1, 0, 0, 0, 1))),
+      EmbeddedMap(Map(1 -> 1, 2 -> 1.toByte, 3 -> true, 4 -> TestUtils.toDate(2015, 6, 1), 5 -> 1234152.12312498,
+        6 -> 1.0f, 7 -> 42, 8 -> 1239012341823719L, 9 -> 23.toShort, 10 -> "Unicode's樂趣", 11 -> TestUtils.toTimestamp(2015, 6, 1, 0, 0, 0, 1))))
+  )
+```
+
+#### Support for Link Types( Since Spark 2.1 release):
+
+```
+val testSchemaForLinkUDTs: StructType = {
+    StructType(Seq(
+      StructField("linklist", LinkListType),
+      StructField("linkset", LinkSetType),
+      StructField("linkmap", LinkMapType)
+    ))
+  }
+```
+
+```
+val expectedDataForLinkUDTs: Seq[Row] = Seq(
+    Row(LinkList(Array(oDocument1)), LinkSet(Array(oDocument1)), LinkMap(Map("1" -> oDocument1))),
+    Row(LinkList(Array(oDocument2)), LinkSet(Array(oDocument2)), LinkMap(Map("1" -> oDocument2))),
+    Row(LinkList(Array(oDocument3)), LinkSet(Array(oDocument3)), LinkMap(Map("1" -> oDocument3))),
+    Row(LinkList(Array(oDocument4)), LinkSet(Array(oDocument4)), LinkMap(Map("1" -> oDocument4))),
+    Row(LinkList(Array(oDocument5)), LinkSet(Array(oDocument5)), LinkMap(Map("1" -> oDocument5)))
+  )
 ```
 
 ### OrientDB Graphs:
@@ -209,6 +266,12 @@ val loadedEdgesDf = sqlContext.read
                  .option("query", s"select * from $test_edge_type2 where relationship = 'friends'")
                  .load()                 
 ```
+
+#### Support for embedded types & link types( Since Spark 2.1 release)
+
+The Spark UDTs are available for OrientDB Graph datasource as well.
+Usage is very similar to the ones documented for OrientDB Document datasource.
+Examples can be found in Integration tests.
 
 ### Integration with GraphFrames
 

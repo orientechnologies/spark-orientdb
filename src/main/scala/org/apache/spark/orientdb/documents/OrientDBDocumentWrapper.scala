@@ -6,6 +6,7 @@ import com.orientechnologies.orient.core.record.impl.ODocument
 import com.orientechnologies.orient.core.sql.query.OSQLSynchQuery
 import com.orientechnologies.orient.core.tx.OTransaction.TXTYPE
 import org.apache.spark.orientdb.documents.Parameters.MergedParameters
+import org.apache.spark.orientdb.udts._
 import org.apache.spark.sql.types._
 
 import scala.collection.JavaConversions._
@@ -286,6 +287,12 @@ class OrientDBDocumentWrapper extends Serializable {
       case OType.BYTE => ByteType
       case OType.DATE => DateType
       case OType.DECIMAL => DecimalType(38, 18)
+      case OType.EMBEDDEDLIST => new EmbeddedListType
+      case OType.EMBEDDEDSET => new EmbeddedSetType
+      case OType.EMBEDDEDMAP => new EmbeddedMapType
+      case OType.LINKLIST => new LinkListType
+      case OType.LINKSET => new LinkSetType
+      case OType.LINKMAP => new LinkMapType
       case OType.ANY => null
     }
     dataType

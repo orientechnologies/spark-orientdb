@@ -98,7 +98,7 @@ private[orientdb] class OrientDBVertexWriter(orientDBWrapper: OrientDBGraphVerte
             val orientDBType = Conversions
               .sparkDTtoOrientDBDT(sparkType)
             createdVertex.setProperty(fields(count).name,
-              row.getAs[sparkType.type](count), orientDBType)
+              Conversions.convertRowToGraph(row, count), orientDBType)
 
             count = count + 1
           }
@@ -257,7 +257,7 @@ private[orientdb] class OrientDBEdgeWriter(orientDBWrapper: OrientDBGraphEdgeWra
             for (i <- fields.indices) {
               val sparkType = fields(i).dataType
               val orientDBType = Conversions.sparkDTtoOrientDBDT(sparkType)
-              createdEdge.setProperty(fields(i).name, row.getAs[sparkType.type](i), orientDBType)
+              createdEdge.setProperty(fields(i).name, Conversions.convertRowToGraph(row, i), orientDBType)
             }
           }
 
