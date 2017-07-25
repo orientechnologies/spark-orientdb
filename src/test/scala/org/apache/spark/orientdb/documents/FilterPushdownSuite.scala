@@ -61,5 +61,7 @@ class FilterPushdownSuite extends FunSuite {
     StructField("test_timestamp", TimestampType)
   ))
 
-  private case object NewFilter extends Filter
+  private case object NewFilter extends Filter {
+    override def references: Array[String] = Array()
+  }
 }
