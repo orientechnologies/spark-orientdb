@@ -95,6 +95,7 @@ private[orientdb] case class OrientDBVertexRelation(
       val filterStr = FilterPushdown.buildWhereClause(schema, filters)
       var oVertices: List[Vertex] = List()
       try {
+        orientDBVertexWrapper.getConnection(params)
         if (params.query.isEmpty) {
           oVertices = orientDBVertexWrapper.read(vertexTypeName, requiredColumns,
             filterStr, null)
