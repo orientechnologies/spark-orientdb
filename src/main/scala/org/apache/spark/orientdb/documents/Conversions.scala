@@ -10,7 +10,6 @@ import com.orientechnologies.orient.core.id.ORecordId
 import com.orientechnologies.orient.core.metadata.schema.OType
 import com.orientechnologies.orient.core.record.ORecord
 import com.orientechnologies.orient.core.record.impl.ODocument
-import com.tinkerpop.blueprints.impls.orient.OrientVertex
 import com.tinkerpop.blueprints.{Edge, Vertex}
 import org.apache.spark.orientdb.udts._
 import org.apache.spark.sql.Row
