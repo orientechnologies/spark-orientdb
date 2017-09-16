@@ -2,7 +2,7 @@ package org.apache.spark.orientdb.documents
 
 import java.sql.{Date, Timestamp}
 import java.text.SimpleDateFormat
-import java.util.Map
+import java.util.{Locale, Map}
 import java.util.function.Consumer
 
 import com.orientechnologies.orient.core.db.record._
@@ -75,7 +75,7 @@ private[orientdb] object Conversions {
     if (field == null)
       field
     else {
-      val dateFormat = new SimpleDateFormat("E MMM dd HH:mm:ss Z yyyy")
+      val dateFormat = new SimpleDateFormat("E MMM dd HH:mm:ss Z yyyy", Locale.ENGLISH)
       dataType match {
         case ByteType => java.lang.Byte.valueOf(field.toString)
         case ShortType => field.toString.toShort
