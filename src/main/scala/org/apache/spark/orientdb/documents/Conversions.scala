@@ -6,6 +6,7 @@ import java.util.{Locale, Map}
 import java.util.function.Consumer
 
 import com.orientechnologies.orient.core.db.record._
+import com.orientechnologies.orient.core.db.record.ridbag.ORidBag
 import com.orientechnologies.orient.core.id.ORecordId
 import com.orientechnologies.orient.core.metadata.schema.OType
 import com.orientechnologies.orient.core.record.ORecord
@@ -39,6 +40,7 @@ private[orientdb] object Conversions {
       case _: LinkListType => OType.LINKLIST
       case _: LinkSetType => OType.LINKSET
       case _: LinkMapType => OType.LINKMAP
+      case _: LinkBagType => OType.LINKBAG
       case other => throw new UnsupportedOperationException(s"Unexpected DataType $dataType")
     }
   }
@@ -144,6 +146,16 @@ private[orientdb] object Conversions {
             }
           })
           new LinkMap(elements.toMap)
+        case _: LinkBagType =>
+          var elements = Array[ORecordId]()
+            field.asInstanceOf[ORidBag].rawIterator().forEachRemaining(new Consumer[OIdentifiable] {
+              override def accept(t: OIdentifiable): Unit = t match {
+                case recordId: ORecordId =>
+                  elements :+= recordId
+                case other => sys.error(s"LinkBag cannot be of type ${other.getClass}")
+              }
+            })
+          new LinkBag(elements)
         case other => throw new UnsupportedOperationException(s"Unexpected DataType $dataType")
       }
     }
@@ -242,6 +254,10 @@ private[orientdb] object Conversions {
     case "linklist" => row.getAs[field.dataType.type](field.name).asInstanceOf[LinkList].elements
     case "linkset" => row.getAs[field.dataType.type](field.name).asInstanceOf[LinkSet].elements
     case "linkmap" => mapAsJavaMap(row.getAs[field.dataType.type](field.name).asInstanceOf[LinkMap].elements)
+    case "linkbag" =>
+      val oRidBag = new ORidBag()
+      oRidBag.addAll(row.getAs[field.dataType.type ](field.name).asInstanceOf[LinkBag].elements.toSeq)
+      oRidBag
     case _ => row.getAs[field.dataType.type](field.name)
   }
 }

@@ -48,7 +48,7 @@ Getting Started
 <dependency>
    <groupId>org.apache.spark</groupId>
    <artifactId>spark-orientdb-2.0.0_2.10</artifactId>
-   <version>1.3</version>
+   <version>1.4</version>
 </dependency>
 ```
 
@@ -58,7 +58,7 @@ Getting Started
 <dependency>
    <groupId>org.apache.spark</groupId>
    <artifactId>spark-orientdb-2.1.1_2.11</artifactId>
-   <version>1.3</version>
+   <version>1.4</version>
 </dependency>
 ```
 
@@ -148,18 +148,19 @@ val testSchemaForLinkUDTs: StructType = {
     StructType(Seq(
       StructField("linklist", LinkListType),
       StructField("linkset", LinkSetType),
-      StructField("linkmap", LinkMapType)
+      StructField("linkmap", LinkMapType),
+      StructField("linkbag", LinkBagType)
     ))
   }
 ```
 
 ```
 val expectedDataForLinkUDTs: Seq[Row] = Seq(
-    Row(LinkList(Array(oDocument1)), LinkSet(Array(oDocument1)), LinkMap(Map("1" -> oDocument1))),
-    Row(LinkList(Array(oDocument2)), LinkSet(Array(oDocument2)), LinkMap(Map("1" -> oDocument2))),
-    Row(LinkList(Array(oDocument3)), LinkSet(Array(oDocument3)), LinkMap(Map("1" -> oDocument3))),
-    Row(LinkList(Array(oDocument4)), LinkSet(Array(oDocument4)), LinkMap(Map("1" -> oDocument4))),
-    Row(LinkList(Array(oDocument5)), LinkSet(Array(oDocument5)), LinkMap(Map("1" -> oDocument5)))
+    Row(LinkList(Array(oDocument1)), LinkSet(Array(oDocument1)), LinkMap(Map("1" -> oDocument1)), LinkBag(Array(oRid1))),
+    Row(LinkList(Array(oDocument2)), LinkSet(Array(oDocument2)), LinkMap(Map("1" -> oDocument2)), LinkBag(Array(oRid2))),
+    Row(LinkList(Array(oDocument3)), LinkSet(Array(oDocument3)), LinkMap(Map("1" -> oDocument3)), LinkBag(Array(oRid3))),
+    Row(LinkList(Array(oDocument4)), LinkSet(Array(oDocument4)), LinkMap(Map("1" -> oDocument4)), LinkBag(Array(oRid4))),
+    Row(LinkList(Array(oDocument5)), LinkSet(Array(oDocument5)), LinkMap(Map("1" -> oDocument5)), LinkBag(Array(oRid5)))
   )
 ```
 
