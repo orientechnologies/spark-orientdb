@@ -55,6 +55,7 @@ class OrientDBGraphWrapper extends Serializable {
       case OType.LINKLIST => new LinkListType
       case OType.LINKSET => new LinkSetType
       case OType.LINKMAP => new LinkMapType
+      case OType.LINKBAG => new LinkBagType
       case OType.ANY => null
     }
     dataType

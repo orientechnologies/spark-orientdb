@@ -62,6 +62,6 @@ class FilterPushdownSuite extends FunSuite {
   ))
 
   private case object NewFilter extends Filter {
-    override def references: Array[String] = Array()
+    def references: Array[String] = Array()
   }
 }

@@ -3,6 +3,7 @@ package org.apache.spark.orientdb
 import java.sql.{Date, Timestamp}
 import java.util.Calendar
 
+import com.orientechnologies.orient.core.id.ORecordId
 import com.orientechnologies.orient.core.metadata.schema.OType
 import com.orientechnologies.orient.core.record.impl.ODocument
 import org.apache.spark.orientdb.udts._
@@ -80,7 +81,8 @@ object TestUtils {
     StructType(Seq(
       StructField("linklist", LinkListType),
       StructField("linkset", LinkSetType),
-      StructField("linkmap", LinkMapType)
+      StructField("linkmap", LinkMapType),
+      StructField("linkbag", LinkBagType)
     ))
   }
 
@@ -89,7 +91,8 @@ object TestUtils {
       StructField("id", IntegerType),
       StructField("linklist", LinkListType),
       StructField("linkset", LinkSetType),
-      StructField("linkmap", LinkMapType)
+      StructField("linkmap", LinkMapType),
+      StructField("linkbag", LinkBagType)
     ))
   }
 
@@ -99,7 +102,8 @@ object TestUtils {
       StructField("dst", IntegerType),
       StructField("linklist", LinkListType),
       StructField("linkset", LinkSetType),
-      StructField("linkmap", LinkMapType)
+      StructField("linkmap", LinkMapType),
+      StructField("linkbag", LinkBagType)
     ))
   }
 
@@ -232,6 +236,9 @@ object TestUtils {
   oDocument1.field("f10", "Unicode's樂趣", OType.STRING)
   oDocument1.field("f11", TestUtils.toTimestamp(2015, 6, 1, 0, 0, 0, 1), OType.DATETIME)
 
+  val oRid1 = new ORecordId()
+  oRid1.fromString("#1:1")
+
   val oDocument2 = new ODocument()
   oDocument2.field("f1", 2, OType.INTEGER)
   oDocument2.field("f2", 1.toByte, OType.BYTE)
@@ -244,6 +251,9 @@ object TestUtils {
   oDocument2.field("f9", -13.toShort, OType.SHORT)
   oDocument2.field("f10", "asdf", OType.STRING)
   oDocument2.field("f11",  TestUtils.toTimestamp(2015, 6, 2, 0, 0, 0, 0), OType.DATETIME)
+
+  val oRid2 = new ORecordId()
+  oRid2.fromString("#2:2")
 
   val oDocument3 = new ODocument()
   oDocument3.field("f1", 3, OType.INTEGER)
@@ -258,6 +268,9 @@ object TestUtils {
   oDocument3.field("f10", "f", OType.STRING)
   oDocument3.field("f11",  TestUtils.toTimestamp(2015, 6, 3, 0, 0, 0), OType.DATETIME)
 
+  val oRid3 = new ORecordId()
+  oRid3.fromString("#3:3")
+
   val oDocument4 = new ODocument()
   oDocument4.field("f1", 4, OType.INTEGER)
   oDocument4.field("f2", 0.toByte, OType.BYTE)
@@ -270,6 +283,9 @@ object TestUtils {
   oDocument4.field("f9", 24.toShort, OType.SHORT)
   oDocument4.field("f10", "___|_123", OType.STRING)
   oDocument4.field("f11",  null, OType.DATETIME)
+
+  val oRid4 = new ORecordId()
+  oRid4.fromString("#4:4")
 
   val oDocument5 = new ODocument()
   oDocument5.field("f1", null, OType.INTEGER)
@@ -284,20 +300,23 @@ object TestUtils {
   oDocument5.field("f10", null, OType.STRING)
   oDocument5.field("f11", null, OType.DATETIME)
 
+  val oRid5 = new ORecordId()
+  oRid5.fromString("#5:5")
+
   val expectedDataForLinkUDTs: Seq[Row] = Seq(
-    Row(LinkList(Array(oDocument1)), LinkSet(Array(oDocument1)), LinkMap(Map("1" -> oDocument1))),
-    Row(LinkList(Array(oDocument2)), LinkSet(Array(oDocument2)), LinkMap(Map("1" -> oDocument2))),
-    Row(LinkList(Array(oDocument3)), LinkSet(Array(oDocument3)), LinkMap(Map("1" -> oDocument3))),
-    Row(LinkList(Array(oDocument4)), LinkSet(Array(oDocument4)), LinkMap(Map("1" -> oDocument4))),
-    Row(LinkList(Array(oDocument5)), LinkSet(Array(oDocument5)), LinkMap(Map("1" -> oDocument5)))
+    Row(LinkList(Array(oDocument1)), LinkSet(Array(oDocument1)), LinkMap(Map("1" -> oDocument1)), LinkBag(Array(oRid1))),
+    Row(LinkList(Array(oDocument2)), LinkSet(Array(oDocument2)), LinkMap(Map("1" -> oDocument2)), LinkBag(Array(oRid2))),
+    Row(LinkList(Array(oDocument3)), LinkSet(Array(oDocument3)), LinkMap(Map("1" -> oDocument3)), LinkBag(Array(oRid3))),
+    Row(LinkList(Array(oDocument4)), LinkSet(Array(oDocument4)), LinkMap(Map("1" -> oDocument4)), LinkBag(Array(oRid4))),
+    Row(LinkList(Array(oDocument5)), LinkSet(Array(oDocument5)), LinkMap(Map("1" -> oDocument5)), LinkBag(Array(oRid5)))
   )
 
   val expectedDataForLinkUDTsForVertices: Seq[Row] = Seq(
-    Row(1, LinkList(Array(oDocument1)), LinkSet(Array(oDocument1)), LinkMap(Map("1" -> oDocument1))),
-    Row(2, LinkList(Array(oDocument2)), LinkSet(Array(oDocument2)), LinkMap(Map("1" -> oDocument2))),
-    Row(3, LinkList(Array(oDocument3)), LinkSet(Array(oDocument3)), LinkMap(Map("1" -> oDocument3))),
-    Row(4, LinkList(Array(oDocument4)), LinkSet(Array(oDocument4)), LinkMap(Map("1" -> oDocument4))),
-    Row(5, LinkList(Array(oDocument5)), LinkSet(Array(oDocument5)), LinkMap(Map("1" -> oDocument5)))
+    Row(1, LinkList(Array(oDocument1)), LinkSet(Array(oDocument1)), LinkMap(Map("1" -> oDocument1)), LinkBag(Array(oRid1))),
+    Row(2, LinkList(Array(oDocument2)), LinkSet(Array(oDocument2)), LinkMap(Map("1" -> oDocument2)), LinkBag(Array(oRid2))),
+    Row(3, LinkList(Array(oDocument3)), LinkSet(Array(oDocument3)), LinkMap(Map("1" -> oDocument3)), LinkBag(Array(oRid3))),
+    Row(4, LinkList(Array(oDocument4)), LinkSet(Array(oDocument4)), LinkMap(Map("1" -> oDocument4)), LinkBag(Array(oRid4))),
+    Row(5, LinkList(Array(oDocument5)), LinkSet(Array(oDocument5)), LinkMap(Map("1" -> oDocument5)), LinkBag(Array(oRid5)))
   )
 
   val oDocument6 = new ODocument()
@@ -321,10 +340,10 @@ object TestUtils {
   oDocument9.field("relationship", "enemy", OType.STRING)
 
   val expectedDataForLinkUDTsForEdges: Seq[Row] = Seq(
-    Row(1, 2, LinkList(Array(oDocument6)), LinkSet(Array(oDocument6)), LinkMap(Map("1" -> oDocument6))),
-    Row(2, 3, LinkList(Array(oDocument7)), LinkSet(Array(oDocument7)), LinkMap(Map("1" -> oDocument7))),
-    Row(3, 4, LinkList(Array(oDocument8)), LinkSet(Array(oDocument8)), LinkMap(Map("1" -> oDocument8))),
-    Row(4, 5, LinkList(Array(oDocument9)), LinkSet(Array(oDocument9)), LinkMap(Map("1" -> oDocument9)))
+    Row(1, 2, LinkList(Array(oDocument6)), LinkSet(Array(oDocument6)), LinkMap(Map("1" -> oDocument6)), LinkBag(Array(oRid1))),
+    Row(2, 3, LinkList(Array(oDocument7)), LinkSet(Array(oDocument7)), LinkMap(Map("1" -> oDocument7)), LinkBag(Array(oRid2))),
+    Row(3, 4, LinkList(Array(oDocument8)), LinkSet(Array(oDocument8)), LinkMap(Map("1" -> oDocument8)), LinkBag(Array(oRid3))),
+    Row(4, 5, LinkList(Array(oDocument9)), LinkSet(Array(oDocument9)), LinkMap(Map("1" -> oDocument9)), LinkBag(Array(oRid4)))
   )
 
   def toMillis(

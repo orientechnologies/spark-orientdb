@@ -1,11 +1,14 @@
 package org.apache.spark.orientdb.documents
 
+import java.util
+
+import com.orientechnologies.orient.core.db.record.ridbag.ORidBag
 import com.orientechnologies.orient.core.db.record.{ORecordLazyList, ORecordLazyMap, ORecordLazySet}
 import com.orientechnologies.orient.core.id.ORecordId
 import com.orientechnologies.orient.core.metadata.schema.OType
 import com.orientechnologies.orient.core.record.ORecord
 import com.orientechnologies.orient.core.record.impl.ODocument
-import org.apache.spark.orientdb.udts.{LinkList, LinkMapType, LinkSet, LinkSetType}
+import org.apache.spark.orientdb.udts._
 import org.apache.spark.{SparkConf, SparkContext}
 import org.apache.spark.orientdb.{QueryTest, TestUtils}
 import org.apache.spark.sql.sources.{EqualTo, Filter, PrunedFilteredScan}
@@ -47,10 +50,11 @@ class OrientDBLinkUDTsSourceSuite extends QueryTest
   }
 
   test("Can load output of OrientDB queries") {
-    val query = "select linkset, linkmap from test_link_table"
+    val query = "select linkset, linkmap, linkbag from test_link_table"
 
     val querySchema = StructType(Seq(StructField("linkset", LinkSetType),
-      StructField("linkmap", LinkMapType)))
+      StructField("linkmap", LinkMapType),
+      StructField("linkbag", LinkBagType)))
 
     {
       val params = Map("dburl" -> "remote:127.0.0.1:2424/GratefulDeadConcerts",
@@ -66,29 +70,43 @@ class OrientDBLinkUDTsSourceSuite extends QueryTest
       oDoc1.field("int", 1, OType.INTEGER)
       var oDoc2 = new ODocument()
       oDoc2.field("boolean", true)
+      var oRid1 = new ORecordId()
+      oRid1.fromString("#1:1")
+      var oRid2 = new ORecordId()
+      oRid2.fromString("#2:2")
 
       var oRecordLazySet = new ORecordLazySet(iSourceRecord)
       oRecordLazySet.add(oDoc1)
       var oRecordLazyMap = new ORecordLazyMap(iSourceRecord)
       oRecordLazyMap.put("1", oDoc2)
+      var oRidBag = new ORidBag()
+      oRidBag.addAll(util.Arrays.asList(oRid1, oRid2))
 
       val oDoc3 = new ODocument()
       oDoc3.field("linkset", oRecordLazySet, OType.LINKSET)
       oDoc3.field("linkmap", oRecordLazyMap, OType.LINKMAP)
+      oDoc3.field("linkbag", oRidBag, OType.LINKBAG)
 
       oDoc1 = new ODocument()
       oDoc1.field("int", 2, OType.INTEGER)
       oDoc2 = new ODocument()
       oDoc2.field("boolean", false)
+      oRid1 = new ORecordId()
+      oRid1.fromString("#3:3")
+      oRid2 = new ORecordId()
+      oRid2.fromString("#4:4")
 
       oRecordLazySet = new ORecordLazySet(iSourceRecord)
       oRecordLazySet.add(oDoc1)
       oRecordLazyMap = new ORecordLazyMap(iSourceRecord)
       oRecordLazyMap.put(1, oDoc2)
+      oRidBag = new ORidBag()
+      oRidBag.addAll(util.Arrays.asList(oRid1, oRid2))
 
       val oDoc4 = new ODocument()
       oDoc4.field("linkset", oRecordLazySet, OType.LINKSET)
       oDoc4.field("linkmap", oRecordLazyMap, OType.LINKMAP)
+      oDoc4.field("linkbag", oRidBag, OType.LINKBAG)
 
       val mockOrientDBDocument = new MockOrientDBDocument(Map(params("class") -> querySchema),
         List(oDoc3, oDoc4))
@@ -113,11 +131,17 @@ class OrientDBLinkUDTsSourceSuite extends QueryTest
       oDoc1.field("int", 1, OType.INTEGER)
       var oDoc2 = new ODocument()
       oDoc2.field("boolean", true)
+      var oRid1 = new ORecordId()
+      oRid1.fromString("#1:1")
+      var oRid2 = new ORecordId()
+      oRid2.fromString("#2:2")
 
       var oRecordLazySet = new ORecordLazySet(iSourceRecord)
       oRecordLazySet.add(oDoc1)
       var oRecordLazyMap = new ORecordLazyMap(iSourceRecord)
       oRecordLazyMap.put("1", oDoc2)
+      var oRidBag = new ORidBag()
+      oRidBag.addAll(util.Arrays.asList(oRid1, oRid2))
 
       val oDoc3 = new ODocument()
       oDoc3.field("linkset", oRecordLazySet, OType.LINKSET)
@@ -127,15 +151,22 @@ class OrientDBLinkUDTsSourceSuite extends QueryTest
       oDoc1.field("int", 2, OType.INTEGER)
       oDoc2 = new ODocument()
       oDoc2.field("boolean", false)
+      oRid1 = new ORecordId()
+      oRid1.fromString("#3:3")
+      oRid2 = new ORecordId()
+      oRid2.fromString("#4:4")
 
       oRecordLazySet = new ORecordLazySet(iSourceRecord)
       oRecordLazySet.add(oDoc1)
       oRecordLazyMap = new ORecordLazyMap(iSourceRecord)
       oRecordLazyMap.put(1, oDoc2)
+      oRidBag = new ORidBag()
+      oRidBag.addAll(util.Arrays.asList(oRid1, oRid2))
 
       val oDoc4 = new ODocument()
       oDoc4.field("linkset", oRecordLazySet, OType.LINKSET)
       oDoc4.field("linkmap", oRecordLazyMap, OType.LINKMAP)
+      oDoc4.field("linkbag", oRidBag, OType.LINKBAG)
 
       val mockOrientDBDocument = new MockOrientDBDocument(Map(params("class") -> querySchema),
         List(oDoc3, oDoc4))
@@ -162,6 +193,10 @@ class OrientDBLinkUDTsSourceSuite extends QueryTest
     oDoc1.field("boolean", true, OType.BOOLEAN)
     var oDoc2 = new ODocument(new ORecordId("#4:4"))
     oDoc2.field("string", "Hello")
+    var oRid1 = new ORecordId()
+    oRid1.fromString("#1:1")
+    var oRid2 = new ORecordId()
+    oRid2.fromString("#2:2")
 
     var oRecordLazyList = new ORecordLazyList(iSourceRecord)
     oRecordLazyList.add(oDoc0)
@@ -169,11 +204,14 @@ class OrientDBLinkUDTsSourceSuite extends QueryTest
     oRecordLazySet.add(oDoc1)
     var oRecordLazyMap = new ORecordLazyMap(iSourceRecord)
     oRecordLazyMap.put("1", oDoc2)
+    var oRidBag = new ORidBag()
+    oRidBag.addAll(util.Arrays.asList(oRid1, oRid2))
 
     val oDoc3 = new ODocument()
     oDoc3.field("linklist", oRecordLazyList, OType.LINKLIST)
     oDoc3.field("linkset", oRecordLazySet, OType.LINKSET)
     oDoc3.field("linkmap", oRecordLazyMap, OType.LINKMAP)
+    oDoc3.field("linkbag", oRidBag, OType.LINKBAG)
 
     val expected1 = Row(LinkList(Array(oDoc0.asInstanceOf[ORecord])), LinkSet(Array(oDoc1.asInstanceOf[ORecord])))
 
@@ -183,6 +221,10 @@ class OrientDBLinkUDTsSourceSuite extends QueryTest
     oDoc1.field("boolean", false, OType.BOOLEAN)
     oDoc2 = new ODocument(new ORecordId("#4:4"))
     oDoc2.field("string", "World")
+    oRid1 = new ORecordId()
+    oRid1.fromString("#3:3")
+    oRid2 = new ORecordId()
+    oRid2.fromString("#4:4")
 
     oRecordLazyList = new ORecordLazyList(iSourceRecord)
     oRecordLazyList.add(oDoc0)
@@ -190,11 +232,14 @@ class OrientDBLinkUDTsSourceSuite extends QueryTest
     oRecordLazySet.add(oDoc1)
     oRecordLazyMap = new ORecordLazyMap(iSourceRecord)
     oRecordLazyMap.put(1, oDoc2)
+    oRidBag = new ORidBag()
+    oRidBag.addAll(util.Arrays.asList(oRid1, oRid2))
 
     val oDoc4 = new ODocument()
     oDoc4.field("linklist", oRecordLazyList, OType.LINKLIST)
     oDoc4.field("linkset", oRecordLazySet, OType.LINKSET)
     oDoc4.field("linkmap", oRecordLazyMap, OType.LINKMAP)
+    oDoc4.field("linkbag", oRidBag, OType.LINKBAG)
 
     val expected2 = Row(LinkList(Array(oDoc0.asInstanceOf[ORecord])), LinkSet(Array(oDoc1.asInstanceOf[ORecord])))
 
@@ -230,6 +275,10 @@ class OrientDBLinkUDTsSourceSuite extends QueryTest
     oDoc1.field("boolean", true, OType.BOOLEAN)
     var oDoc2 = new ODocument(new ORecordId("#4:4"))
     oDoc2.field("string", "Hello")
+    var oRid1 = new ORecordId()
+    oRid1.fromString("#1:1")
+    var oRid2 = new ORecordId()
+    oRid2.fromString("#2:2")
 
     var oRecordLazyList = new ORecordLazyList(iSourceRecord)
     oRecordLazyList.add(oDoc0)
@@ -237,11 +286,14 @@ class OrientDBLinkUDTsSourceSuite extends QueryTest
     oRecordLazySet.add(oDoc1)
     var oRecordLazyMap = new ORecordLazyMap(iSourceRecord)
     oRecordLazyMap.put("1", oDoc2)
+    var oRidBag = new ORidBag()
+    oRidBag.addAll(util.Arrays.asList(oRid1, oRid2))
 
     val oDoc3 = new ODocument()
     oDoc3.field("linklist", oRecordLazyList, OType.LINKLIST)
     oDoc3.field("linkset", oRecordLazySet, OType.LINKSET)
     oDoc3.field("linkmap", oRecordLazyMap, OType.LINKMAP)
+    oDoc3.field("linkbag", oRidBag, OType.LINKBAG)
 
     oDoc0 = new ODocument(new ORecordId("#1:1"))
     oDoc0.field("byte", 2.toByte, OType.BYTE)
@@ -249,6 +301,10 @@ class OrientDBLinkUDTsSourceSuite extends QueryTest
     oDoc1.field("boolean", false, OType.BOOLEAN)
     oDoc2 = new ODocument(new ORecordId("#4:4"))
     oDoc2.field("string", "World")
+    oRid1 = new ORecordId()
+    oRid1.fromString("#1:1")
+    oRid2 = new ORecordId()
+    oRid2.fromString("#2:2")
 
     oRecordLazyList = new ORecordLazyList(iSourceRecord)
     oRecordLazyList.add(oDoc0)
@@ -256,11 +312,14 @@ class OrientDBLinkUDTsSourceSuite extends QueryTest
     oRecordLazySet.add(oDoc1)
     oRecordLazyMap = new ORecordLazyMap(iSourceRecord)
     oRecordLazyMap.put(1, oDoc2)
+    oRidBag = new ORidBag()
+    oRidBag.addAll(util.Arrays.asList(oRid1, oRid2))
 
     val oDoc4 = new ODocument()
     oDoc4.field("linklist", oRecordLazyList, OType.LINKLIST)
     oDoc4.field("linkset", oRecordLazySet, OType.LINKSET)
     oDoc4.field("linkmap", oRecordLazyMap, OType.LINKMAP)
+    oDoc4.field("linkbag", oRidBag, OType.LINKBAG)
 
     val mockOrientDBDocument = new MockOrientDBDocument(Map(params("class") -> TestUtils.testSchemaForLinkUDTs),
       List(oDoc3, oDoc4))
@@ -274,8 +333,8 @@ class OrientDBLinkUDTsSourceSuite extends QueryTest
     )
 
     val rdd = relation.asInstanceOf[PrunedFilteredScan]
-                .buildScan(Array("linklist", "linkset"), filters)
+                .buildScan(Array("linklist", "linkset", "linkbag"), filters)
 
-    assert(rdd.collect().contains(Row(LinkList(Array(oDoc0)), LinkSet(Array(oDoc1)))))
+    assert(rdd.collect().contains(Row(LinkList(Array(oDoc0)), LinkSet(Array(oDoc1)), LinkBag(Array(oRid1, oRid2)))))
   }
 }
