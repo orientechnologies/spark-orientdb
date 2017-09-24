@@ -62,6 +62,7 @@ private[orientdb] case class OrientDBVertexRelation(
       }
 
       log.info("count query")
+      orientDBVertexWrapper.getConnection(params)
 
       try {
         val results = orientDBVertexWrapper.genericQuery(countQuery)
