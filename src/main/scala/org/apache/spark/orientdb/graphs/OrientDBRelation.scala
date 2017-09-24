@@ -194,6 +194,7 @@ private[orientdb] case class OrientDBEdgeRelation(
       }
 
       log.info("count query")
+      orientDBEdgeWrapper.getConnection(params)
 
       try {
         val results = orientDBEdgeWrapper.genericQuery(countQuery)
