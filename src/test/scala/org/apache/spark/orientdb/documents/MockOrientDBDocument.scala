@@ -36,7 +36,7 @@ class MockOrientDBDocument(existingTablesAndSchemas: Map[String, StructType],
     override def answer(invocationOnMock: InvocationOnMock): List[ODocument] = {
       oDocuments
     }
-  }).when(documentWrapper).read(any(classOf[String]), any(classOf[String]), any(classOf[Array[String]]),
+  }).when(documentWrapper).read(any(classOf[List[String]]), any(classOf[String]), any(classOf[Array[String]]),
     any(classOf[String]), any(classOf[String]))
 
   doAnswer(new Answer[Boolean] {

@@ -17,8 +17,8 @@ private[orientdb] class OrientDBWriter(orientDBWrapper: OrientDBDocumentWrapper,
       case None => throw new IllegalArgumentException("For save operations you must specify a OrientDB Class " +
         "name with the 'classname' parameter")
     }
-    var cluster = params.clusterName match {
-      case Some(clusterName) => clusterName
+    var clusters = params.clusterNames match {
+      case Some(clusterNames) => clusterNames
       case None => null
     }
 
@@ -30,10 +30,10 @@ private[orientdb] class OrientDBWriter(orientDBWrapper: OrientDBDocumentWrapper,
       createdClass.createProperty(field.name, Conversions.sparkDTtoOrientDBDT(field.dataType))
     })
 
-    if (cluster != null) {
-      createdClass.addCluster(cluster)
+    if (clusters != null) {
+      clusters.foreach(cluster => createdClass.addCluster(cluster))
     } else {
-      cluster = connector.getClusterNameById(createdClass.getDefaultClusterId)
+      clusters = List(connector.getClusterNameById(createdClass.getDefaultClusterId))
     }
   }
 
@@ -46,7 +46,7 @@ private[orientdb] class OrientDBWriter(orientDBWrapper: OrientDBDocumentWrapper,
       throw new IllegalArgumentException("For save operations you must specify a OrientDB Class " +
         "name with the 'classname' parameter")
     }
-    var cluster = params.clusterName
+    var cluster = params.clusterNames
 
     // Todo use Future
     if (connection.getMetadata.getSchema.existsClass(classname.get)) {
@@ -73,11 +73,11 @@ private[orientdb] class OrientDBWriter(orientDBWrapper: OrientDBDocumentWrapper,
       createOrientDBClass(data, params)
     }
 
-    var cluster = params.clusterName
-    if (cluster.isEmpty) {
+    var clusters = params.clusterNames
+    if (clusters.isEmpty) {
       val schema = connection.getMetadata.getSchema
       val currClass = schema.getClass(classname.get)
-      cluster = Some(connection.getClusterNameById(currClass.getDefaultClusterId))
+      clusters = Some(List(connection.getClusterNameById(currClass.getDefaultClusterId)))
     }
 
     // Todo use future
@@ -86,10 +86,22 @@ private[orientdb] class OrientDBWriter(orientDBWrapper: OrientDBDocumentWrapper,
       data.foreachPartition(rows => {
         val connection = new ODatabaseDocumentTx(params.dbUrl.get)
         connection.open(params.credentials.get._1, params.credentials.get._2)
+        val rowsList = rows.toList
+        val rowsPerCluster = rowsList.length % clusters.get.length match {
+          case 0 => rowsList.length / clusters.get.length
+          case _ => (rowsList.length / clusters.get.length) + 1
+        }
 
-        while (rows.hasNext) {
-          val row = rows.next()
-          connection.save(Conversions.convertRowsToODocuments(row), cluster.get)
+        var countPerCluster = 0
+        var clusterIdx = 0
+        rowsList.foreach { row =>
+          connection.save(Conversions.convertRowsToODocuments(row), clusters.get(clusterIdx))
+          countPerCluster = countPerCluster + 1
+
+          if (countPerCluster % rowsPerCluster == 0) {
+            countPerCluster = 0
+            clusterIdx = clusterIdx + 1
+          }
         }
 
         connection.close()

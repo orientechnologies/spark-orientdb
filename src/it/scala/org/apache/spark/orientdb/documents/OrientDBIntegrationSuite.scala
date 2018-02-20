@@ -631,4 +631,45 @@ class OrientDBIntegrationSuite extends IntegrationSuiteBase {
       schema.dropClass(tableName)
     }
   }
+
+  test("multiple clusters for a single class") {
+    val tableName = s"multiple_clusters_${scala.util.Random.nextInt(100)}"
+    val cluster1 = "cluster4"
+    val cluster2 = "cluster5"
+
+    try {
+      sqlContext.createDataFrame(sc.parallelize(TestUtils.expectedData), TestUtils.testSchema)
+        .write
+        .format("org.apache.spark.orientdb.documents")
+        .option("dburl", ORIENTDB_CONNECTION_URL)
+        .option("user", ORIENTDB_USER)
+        .option("password", ORIENTDB_PASSWORD)
+        .option("class", tableName)
+        .option("clusters", s"$cluster1,$cluster2")
+        .mode(SaveMode.ErrorIfExists)
+        .save()
+
+      assert(DefaultOrientDBDocumentWrapper.doesClassExists(tableName))
+
+      val loadedDf = sqlContext.read
+        .format("org.apache.spark.orientdb.documents")
+        .option("dburl", ORIENTDB_CONNECTION_URL)
+        .option("user", ORIENTDB_USER)
+        .option("password", ORIENTDB_PASSWORD)
+        .option("class", tableName)
+        .load()
+
+      checkAnswer(loadedDf.selectExpr("count(*)"),
+        Seq(Row(5)))
+
+      val resultsFromCluster = orientDBWrapper.genericQuery(s"select * from cluster:$cluster1")
+      assert(resultsFromCluster.length === 3)
+    } finally {
+      orientDBWrapper.delete(null, tableName, null)
+      connection.dropCluster(cluster1, true)
+      connection.dropCluster(cluster2, true)
+      val schema = connection.getMetadata.getSchema
+      schema.dropClass(tableName)
+    }
+  }
 }

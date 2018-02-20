@@ -53,7 +53,7 @@ class OrientDBSourceSuite extends QueryTest
         "user" -> "root",
         "password" -> "root",
         "class" -> "test_table",
-        "cluster" -> "test_cluster")
+        "clusters" -> "test_cluster")
 
       val oDoc1 = new ODocument()
       oDoc1.field("testbyte", 1, OType.BYTE)
@@ -77,7 +77,7 @@ class OrientDBSourceSuite extends QueryTest
         "password" -> "root",
         "class" -> "test_table",
         "query" -> query,
-        "cluster" -> "test_cluster")
+        "clusters" -> "test_cluster")
 
       val oDoc1 = new ODocument()
       oDoc1.field("testbyte", 1, OType.BYTE)
@@ -101,7 +101,7 @@ class OrientDBSourceSuite extends QueryTest
       "user" -> "root",
       "password" -> "root",
       "class" -> "test_table",
-      "cluster" -> "test_cluster")
+      "clusters" -> "test_cluster")
 
     val oDoc1 = new ODocument()
     oDoc1.field("testbyte", 1, OType.BYTE)
@@ -134,7 +134,7 @@ class OrientDBSourceSuite extends QueryTest
       "user" -> "root",
       "password" -> "root",
       "class" -> "test_table",
-      "cluster" -> "test_cluster")
+      "clusters" -> "test_cluster")
 
     val oDoc1 = new ODocument()
     oDoc1.field("testbyte", 1, OType.BYTE)
@@ -168,7 +168,7 @@ class OrientDBSourceSuite extends QueryTest
       "user" -> "root",
       "password" -> "root",
       "query" -> "select testbyte, testbool from test_table where teststring = '\\Unicode''s樂趣'",
-      "cluster" -> "test_cluster"
+      "clusters" -> "test_cluster"
     )
 
     intercept[IllegalArgumentException] {
