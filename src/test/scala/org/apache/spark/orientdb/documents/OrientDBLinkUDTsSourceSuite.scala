@@ -61,7 +61,7 @@ class OrientDBLinkUDTsSourceSuite extends QueryTest
         "user" -> "root",
         "password" -> "root",
         "class" -> "test_link_table",
-        "cluster" -> "test_link_cluster")
+        "clusters" -> "test_link_cluster")
 
       val iSourceRecord = new ODocument()
       iSourceRecord.field("id", 1, OType.INTEGER)
@@ -122,7 +122,7 @@ class OrientDBLinkUDTsSourceSuite extends QueryTest
         "password" -> "root",
         "class" -> "test_link_table",
         "query" -> query,
-        "cluster" -> "test_link_cluster")
+        "clusters" -> "test_link_cluster")
 
       val iSourceRecord = new ODocument()
       iSourceRecord.field("id", 1, OType.INTEGER)
@@ -182,7 +182,7 @@ class OrientDBLinkUDTsSourceSuite extends QueryTest
       "user" -> "root",
       "password" -> "root",
       "class" -> "test_link_table",
-      "cluster" -> "test_link_cluster")
+      "clusters" -> "test_link_cluster")
 
     val iSourceRecord = new ODocument()
     iSourceRecord.field("id", 1, OType.INTEGER)
@@ -264,7 +264,7 @@ class OrientDBLinkUDTsSourceSuite extends QueryTest
       "user" -> "root",
       "password" -> "root",
       "class" -> "test_link_table",
-      "cluster" -> "test_link_cluster")
+      "clusters" -> "test_link_cluster")
 
     val iSourceRecord = new ODocument()
     iSourceRecord.field("id", 1, OType.INTEGER)

@@ -73,6 +73,7 @@ private[orientdb] object Parameters {
     /**
       * cluster name in Orient DB
       */
-    def clusterName: Option[String] = parameters.get("cluster")
+    def clusterNames: Option[List[String]] =
+      parameters.get("clusters").map(_.split(",").toList)
   }
 }

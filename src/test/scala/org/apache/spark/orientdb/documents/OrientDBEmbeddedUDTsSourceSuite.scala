@@ -55,7 +55,7 @@ class OrientDBEmbeddedUDTsSourceSuite extends QueryTest
         "user" -> "root",
         "password" -> "root",
         "class" -> "test_table",
-        "cluster" -> "test_cluster")
+        "clusters" -> "test_cluster")
 
       val iSourceRecord = new ODocument()
       iSourceRecord.field("id", 1, OType.INTEGER)
@@ -92,7 +92,7 @@ class OrientDBEmbeddedUDTsSourceSuite extends QueryTest
         "password" -> "root",
         "class" -> "test_table",
         "query" -> query,
-        "cluster" -> "test_cluster")
+        "clusters" -> "test_cluster")
 
       val iSourceRecord = new ODocument()
       iSourceRecord.field("id", 1, OType.INTEGER)
@@ -129,7 +129,7 @@ class OrientDBEmbeddedUDTsSourceSuite extends QueryTest
       "user" -> "root",
       "password" -> "root",
       "class" -> "test_table",
-      "cluster" -> "test_cluster")
+      "clusters" -> "test_cluster")
 
     val iSourceRecord = new ODocument()
     iSourceRecord.field("id", 1, OType.INTEGER)
@@ -181,7 +181,7 @@ class OrientDBEmbeddedUDTsSourceSuite extends QueryTest
                   "user" -> "root",
                   "password" -> "root",
                   "class" -> "test_table",
-                  "cluster" -> "test_cluster")
+                  "clusters" -> "test_cluster")
 
     val iSourceRecord = new ODocument()
     iSourceRecord.field("id", 1, OType.INTEGER)

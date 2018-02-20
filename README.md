@@ -62,6 +62,16 @@ Getting Started
 </dependency>
 ```
 
+### For Spark 2.2
+
+```
+<dependency>
+   <groupId>org.apache.spark</groupId>
+   <artifactId>spark-orientdb-2.2.1_2.11</artifactId>
+   <version>1.4</version>
+</dependency>
+```
+
 Scala api
 =========
 

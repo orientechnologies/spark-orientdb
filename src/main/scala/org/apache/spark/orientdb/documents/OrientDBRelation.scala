@@ -85,7 +85,7 @@ private[orientdb] case class OrientDBRelation(
       }
     } else {
       var classname: String = null
-      var cluster: String = null
+      var clusters: List[String] = null
       if (params.query.isEmpty) {
         classname = params.className match {
           case Some(className) => className
@@ -93,13 +93,13 @@ private[orientdb] case class OrientDBRelation(
             throw new IllegalArgumentException("For save operations you must specify a OrientDB Class " +
               "name with the 'classname' parameter")
         }
-        cluster = params.clusterName match {
+        clusters = params.clusterNames match {
           case Some(clusterName) => clusterName
           case None =>
             val connection = orientDBWrapper.getConnection(params)
             val schema = connection.getMetadata.getSchema
             val currClass = schema.getClass(classname)
-            connection.getClusterNameById(currClass.getDefaultClusterId)
+            List(connection.getClusterNameById(currClass.getDefaultClusterId))
         }
       }
 
@@ -109,7 +109,7 @@ private[orientdb] case class OrientDBRelation(
       try {
         // todo use Future
         if (params.query.isEmpty) {
-          oDocuments = orientDBWrapper.read(cluster, classname, requiredColumns, filterStr, null)
+          oDocuments = orientDBWrapper.read(clusters, classname, requiredColumns, filterStr, null)
         } else {
           oDocuments = orientDBWrapper
             .read(null, null, requiredColumns, filterStr, params.query.get)

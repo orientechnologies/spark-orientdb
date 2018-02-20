@@ -71,12 +71,12 @@ class OrientDBDocumentWrapper extends Serializable {
 
   /**
     * Read API
-    * @param cluster cluster name in OrientDB
+    * @param clusters cluster name in OrientDB
     * @param classname class name in OrientDB
     * @param filters filters the no. of records retrieved
     * @return
     */
-  def read(cluster: String, classname: String, requiredColumns: Array[String],
+  def read(clusters: List[String], classname: String, requiredColumns: Array[String],
            filters: String, query: String = null): List[ODocument] = {
     var documents: java.util.List[ODocument] = null
     val columns = requiredColumns.mkString(", ")

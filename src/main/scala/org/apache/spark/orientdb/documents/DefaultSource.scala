@@ -40,7 +40,7 @@ class DefaultSource(orientDBWrapper: OrientDBDocumentWrapper,
         "name with the 'classname' parameter")
     }
 
-    val cluster = params.clusterName.getOrElse{
+    val clusters = params.clusterNames.getOrElse{
       log.warn("Orient DB cluster name not specified. Using default Cluster Id for the class specified")
     }
 
