@@ -82,7 +82,8 @@ object TestUtils {
       StructField("linklist", LinkListType),
       StructField("linkset", LinkSetType),
       StructField("linkmap", LinkMapType),
-      StructField("linkbag", LinkBagType)
+      StructField("linkbag", LinkBagType),
+      StructField("link", LinkType)
     ))
   }
 
@@ -92,7 +93,8 @@ object TestUtils {
       StructField("linklist", LinkListType),
       StructField("linkset", LinkSetType),
       StructField("linkmap", LinkMapType),
-      StructField("linkbag", LinkBagType)
+      StructField("linkbag", LinkBagType),
+      StructField("link", LinkType)
     ))
   }
 
@@ -103,7 +105,8 @@ object TestUtils {
       StructField("linklist", LinkListType),
       StructField("linkset", LinkSetType),
       StructField("linkmap", LinkMapType),
-      StructField("linkbag", LinkBagType)
+      StructField("linkbag", LinkBagType),
+      StructField("link", LinkType)
     ))
   }
 
@@ -304,19 +307,19 @@ object TestUtils {
   oRid5.fromString("#5:5")
 
   val expectedDataForLinkUDTs: Seq[Row] = Seq(
-    Row(LinkList(Array(oDocument1)), LinkSet(Array(oDocument1)), LinkMap(Map("1" -> oDocument1)), LinkBag(Array(oRid1))),
-    Row(LinkList(Array(oDocument2)), LinkSet(Array(oDocument2)), LinkMap(Map("1" -> oDocument2)), LinkBag(Array(oRid2))),
-    Row(LinkList(Array(oDocument3)), LinkSet(Array(oDocument3)), LinkMap(Map("1" -> oDocument3)), LinkBag(Array(oRid3))),
-    Row(LinkList(Array(oDocument4)), LinkSet(Array(oDocument4)), LinkMap(Map("1" -> oDocument4)), LinkBag(Array(oRid4))),
-    Row(LinkList(Array(oDocument5)), LinkSet(Array(oDocument5)), LinkMap(Map("1" -> oDocument5)), LinkBag(Array(oRid5)))
+    Row(LinkList(Array(oDocument1)), LinkSet(Array(oDocument1)), LinkMap(Map("1" -> oDocument1)), LinkBag(Array(oRid1)), Link(oDocument1)),
+    Row(LinkList(Array(oDocument2)), LinkSet(Array(oDocument2)), LinkMap(Map("1" -> oDocument2)), LinkBag(Array(oRid2)), Link(oDocument2)),
+    Row(LinkList(Array(oDocument3)), LinkSet(Array(oDocument3)), LinkMap(Map("1" -> oDocument3)), LinkBag(Array(oRid3)), Link(oDocument3)),
+    Row(LinkList(Array(oDocument4)), LinkSet(Array(oDocument4)), LinkMap(Map("1" -> oDocument4)), LinkBag(Array(oRid4)), Link(oDocument4)),
+    Row(LinkList(Array(oDocument5)), LinkSet(Array(oDocument5)), LinkMap(Map("1" -> oDocument5)), LinkBag(Array(oRid5)), Link(oDocument5))
   )
 
   val expectedDataForLinkUDTsForVertices: Seq[Row] = Seq(
-    Row(1, LinkList(Array(oDocument1)), LinkSet(Array(oDocument1)), LinkMap(Map("1" -> oDocument1)), LinkBag(Array(oRid1))),
-    Row(2, LinkList(Array(oDocument2)), LinkSet(Array(oDocument2)), LinkMap(Map("1" -> oDocument2)), LinkBag(Array(oRid2))),
-    Row(3, LinkList(Array(oDocument3)), LinkSet(Array(oDocument3)), LinkMap(Map("1" -> oDocument3)), LinkBag(Array(oRid3))),
-    Row(4, LinkList(Array(oDocument4)), LinkSet(Array(oDocument4)), LinkMap(Map("1" -> oDocument4)), LinkBag(Array(oRid4))),
-    Row(5, LinkList(Array(oDocument5)), LinkSet(Array(oDocument5)), LinkMap(Map("1" -> oDocument5)), LinkBag(Array(oRid5)))
+    Row(1, LinkList(Array(oDocument1)), LinkSet(Array(oDocument1)), LinkMap(Map("1" -> oDocument1)), LinkBag(Array(oRid1)), Link(oDocument1)),
+    Row(2, LinkList(Array(oDocument2)), LinkSet(Array(oDocument2)), LinkMap(Map("1" -> oDocument2)), LinkBag(Array(oRid2)), Link(oDocument2)),
+    Row(3, LinkList(Array(oDocument3)), LinkSet(Array(oDocument3)), LinkMap(Map("1" -> oDocument3)), LinkBag(Array(oRid3)), Link(oDocument3)),
+    Row(4, LinkList(Array(oDocument4)), LinkSet(Array(oDocument4)), LinkMap(Map("1" -> oDocument4)), LinkBag(Array(oRid4)), Link(oDocument4)),
+    Row(5, LinkList(Array(oDocument5)), LinkSet(Array(oDocument5)), LinkMap(Map("1" -> oDocument5)), LinkBag(Array(oRid5)), Link(oDocument5))
   )
 
   val oDocument6 = new ODocument()
@@ -340,10 +343,10 @@ object TestUtils {
   oDocument9.field("relationship", "enemy", OType.STRING)
 
   val expectedDataForLinkUDTsForEdges: Seq[Row] = Seq(
-    Row(1, 2, LinkList(Array(oDocument6)), LinkSet(Array(oDocument6)), LinkMap(Map("1" -> oDocument6)), LinkBag(Array(oRid1))),
-    Row(2, 3, LinkList(Array(oDocument7)), LinkSet(Array(oDocument7)), LinkMap(Map("1" -> oDocument7)), LinkBag(Array(oRid2))),
-    Row(3, 4, LinkList(Array(oDocument8)), LinkSet(Array(oDocument8)), LinkMap(Map("1" -> oDocument8)), LinkBag(Array(oRid3))),
-    Row(4, 5, LinkList(Array(oDocument9)), LinkSet(Array(oDocument9)), LinkMap(Map("1" -> oDocument9)), LinkBag(Array(oRid4)))
+    Row(1, 2, LinkList(Array(oDocument6)), LinkSet(Array(oDocument6)), LinkMap(Map("1" -> oDocument6)), LinkBag(Array(oRid1)), Link(oDocument6)),
+    Row(2, 3, LinkList(Array(oDocument7)), LinkSet(Array(oDocument7)), LinkMap(Map("1" -> oDocument7)), LinkBag(Array(oRid2)), Link(oDocument7)),
+    Row(3, 4, LinkList(Array(oDocument8)), LinkSet(Array(oDocument8)), LinkMap(Map("1" -> oDocument8)), LinkBag(Array(oRid3)), Link(oDocument8)),
+    Row(4, 5, LinkList(Array(oDocument9)), LinkSet(Array(oDocument9)), LinkMap(Map("1" -> oDocument9)), LinkBag(Array(oRid4)), Link(oDocument9))
   )
 
   def toMillis(

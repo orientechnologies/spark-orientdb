@@ -50,11 +50,12 @@ class OrientDBLinkUDTsSourceSuite extends QueryTest
   }
 
   test("Can load output of OrientDB queries") {
-    val query = "select linkset, linkmap, linkbag from test_link_table"
+    val query = "select linkset, linkmap, linkbag, link from test_link_table"
 
     val querySchema = StructType(Seq(StructField("linkset", LinkSetType),
       StructField("linkmap", LinkMapType),
-      StructField("linkbag", LinkBagType)))
+      StructField("linkbag", LinkBagType),
+      StructField("link", LinkType)))
 
     {
       val params = Map("dburl" -> "remote:127.0.0.1:2424/GratefulDeadConcerts",
@@ -86,6 +87,7 @@ class OrientDBLinkUDTsSourceSuite extends QueryTest
       oDoc3.field("linkset", oRecordLazySet, OType.LINKSET)
       oDoc3.field("linkmap", oRecordLazyMap, OType.LINKMAP)
       oDoc3.field("linkbag", oRidBag, OType.LINKBAG)
+      oDoc3.field("link", oDoc1, OType.LINK)
 
       oDoc1 = new ODocument()
       oDoc1.field("int", 2, OType.INTEGER)
@@ -107,6 +109,7 @@ class OrientDBLinkUDTsSourceSuite extends QueryTest
       oDoc4.field("linkset", oRecordLazySet, OType.LINKSET)
       oDoc4.field("linkmap", oRecordLazyMap, OType.LINKMAP)
       oDoc4.field("linkbag", oRidBag, OType.LINKBAG)
+      oDoc4.field("link", oDoc1, OType.LINK)
 
       val mockOrientDBDocument = new MockOrientDBDocument(Map(params("class") -> querySchema),
         List(oDoc3, oDoc4))
@@ -167,6 +170,7 @@ class OrientDBLinkUDTsSourceSuite extends QueryTest
       oDoc4.field("linkset", oRecordLazySet, OType.LINKSET)
       oDoc4.field("linkmap", oRecordLazyMap, OType.LINKMAP)
       oDoc4.field("linkbag", oRidBag, OType.LINKBAG)
+      oDoc4.field("link", oDoc1, OType.LINK)
 
       val mockOrientDBDocument = new MockOrientDBDocument(Map(params("class") -> querySchema),
         List(oDoc3, oDoc4))
@@ -212,6 +216,7 @@ class OrientDBLinkUDTsSourceSuite extends QueryTest
     oDoc3.field("linkset", oRecordLazySet, OType.LINKSET)
     oDoc3.field("linkmap", oRecordLazyMap, OType.LINKMAP)
     oDoc3.field("linkbag", oRidBag, OType.LINKBAG)
+    oDoc3.field("link", oDoc1, OType.LINK)
 
     val expected1 = Row(LinkList(Array(oDoc0.asInstanceOf[ORecord])), LinkSet(Array(oDoc1.asInstanceOf[ORecord])))
 
@@ -240,6 +245,7 @@ class OrientDBLinkUDTsSourceSuite extends QueryTest
     oDoc4.field("linkset", oRecordLazySet, OType.LINKSET)
     oDoc4.field("linkmap", oRecordLazyMap, OType.LINKMAP)
     oDoc4.field("linkbag", oRidBag, OType.LINKBAG)
+    oDoc4.field("link", oDoc1, OType.LINK)
 
     val expected2 = Row(LinkList(Array(oDoc0.asInstanceOf[ORecord])), LinkSet(Array(oDoc1.asInstanceOf[ORecord])))
 
@@ -294,6 +300,7 @@ class OrientDBLinkUDTsSourceSuite extends QueryTest
     oDoc3.field("linkset", oRecordLazySet, OType.LINKSET)
     oDoc3.field("linkmap", oRecordLazyMap, OType.LINKMAP)
     oDoc3.field("linkbag", oRidBag, OType.LINKBAG)
+    oDoc3.field("link", oDoc1, OType.LINK)
 
     oDoc0 = new ODocument(new ORecordId("#1:1"))
     oDoc0.field("byte", 2.toByte, OType.BYTE)
@@ -320,6 +327,7 @@ class OrientDBLinkUDTsSourceSuite extends QueryTest
     oDoc4.field("linkset", oRecordLazySet, OType.LINKSET)
     oDoc4.field("linkmap", oRecordLazyMap, OType.LINKMAP)
     oDoc4.field("linkbag", oRidBag, OType.LINKBAG)
+    oDoc4.field("link", oDoc1, OType.LINK)
 
     val mockOrientDBDocument = new MockOrientDBDocument(Map(params("class") -> TestUtils.testSchemaForLinkUDTs),
       List(oDoc3, oDoc4))
@@ -333,8 +341,8 @@ class OrientDBLinkUDTsSourceSuite extends QueryTest
     )
 
     val rdd = relation.asInstanceOf[PrunedFilteredScan]
-                .buildScan(Array("linklist", "linkset", "linkbag"), filters)
+                .buildScan(Array("linklist", "linkset", "linkbag", "link"), filters)
 
-    assert(rdd.collect().contains(Row(LinkList(Array(oDoc0)), LinkSet(Array(oDoc1)), LinkBag(Array(oRid1, oRid2)))))
+    assert(rdd.collect().contains(Row(LinkList(Array(oDoc0)), LinkSet(Array(oDoc1)), LinkBag(Array(oRid1, oRid2)), Link(oDoc1))))
   }
 }

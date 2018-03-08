@@ -294,6 +294,7 @@ class OrientDBDocumentWrapper extends Serializable {
       case OType.LINKSET => new LinkSetType
       case OType.LINKMAP => new LinkMapType
       case OType.LINKBAG => new LinkBagType
+      case OType.LINK => new LinkType
       case OType.ANY => null
     }
     dataType

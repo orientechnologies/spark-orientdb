@@ -41,6 +41,7 @@ private[orientdb] object Conversions {
       case _: LinkSetType => OType.LINKSET
       case _: LinkMapType => OType.LINKMAP
       case _: LinkBagType => OType.LINKBAG
+      case _: LinkType => OType.LINK
       case other => throw new UnsupportedOperationException(s"Unexpected DataType $dataType")
     }
   }
@@ -156,6 +157,9 @@ private[orientdb] object Conversions {
               }
             })
           new LinkBag(elements)
+        case _: LinkType =>
+          val element = field.asInstanceOf[ORecord]
+          new Link(element)
         case other => throw new UnsupportedOperationException(s"Unexpected DataType $dataType")
       }
     }
