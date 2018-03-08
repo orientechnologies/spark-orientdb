@@ -96,6 +96,7 @@ class OrientDBLinkUDTsSourceSuite extends QueryTest
       oVertex1.setProperty("linkset", oRecordLazySet)
       oVertex1.setProperty("linkmap", oRecordLazyMap)
       oVertex1.setProperty("linkbag", oRidBag)
+      oVertex1.setProperty("link", oVert1)
 
       val oVertex2 = new MockVertex(Mockito.mock(classOf[OrientBaseGraph]),
         new ODocument())
@@ -119,6 +120,7 @@ class OrientDBLinkUDTsSourceSuite extends QueryTest
       oVertex2.setProperty("linkset", oRecordLazySet)
       oVertex2.setProperty("linkmap", oRecordLazyMap)
       oVertex2.setProperty("linkbag", oRidBag)
+      oVertex2.setProperty("link", oVert1)
 
       val mockOrientDBGraph = new MockOrientDBGraph(Map(params("vertextype") -> querySchema),
         List(oVertex1, oVertex2))
@@ -160,6 +162,7 @@ class OrientDBLinkUDTsSourceSuite extends QueryTest
       oVertex1.setProperty("linkset", oRecordLazySet)
       oVertex1.setProperty("linkmap", oRecordLazyMap)
       oVertex1.setProperty("linkbag", oRidBag)
+      oVertex1.setProperty("link", oVert1)
 
       val oVertex2 = new MockVertex(Mockito.mock(classOf[OrientBaseGraph]),
         new ODocument())
@@ -183,6 +186,7 @@ class OrientDBLinkUDTsSourceSuite extends QueryTest
       oVertex2.setProperty("linkset", oRecordLazySet)
       oVertex2.setProperty("linkmap", oRecordLazyMap)
       oVertex2.setProperty("linkbag", oRidBag)
+      oVertex2.setProperty("link", oVert1)
 
       val mockOrientDBGraph = new MockOrientDBGraph(Map(params("vertextype") -> querySchema),
         List(oVertex1, oVertex2))
@@ -232,6 +236,7 @@ class OrientDBLinkUDTsSourceSuite extends QueryTest
       oEdge1.setProperty("linkset", oRecordLazySet)
       oEdge1.setProperty("linkmap", oRecordLazyMap)
       oEdge1.setProperty("linkbag", oRidBag)
+      oEdge1.setProperty("link", oEdgeA)
 
       val oEdge2 = new MockEdge(Mockito.mock(classOf[OrientBaseGraph]),
         new ODocument())
@@ -255,6 +260,7 @@ class OrientDBLinkUDTsSourceSuite extends QueryTest
       oEdge2.setProperty("linkset", oRecordLazySet)
       oEdge2.setProperty("linkmap", oRecordLazyMap)
       oEdge2.setProperty("linkbag", oRidBag)
+      oEdge2.setProperty("link", oEdgeA)
 
       val mockOrientDBGraph = new MockOrientDBGraph(Map(params("edgetype") -> querySchema), null,
         List(oEdge1, oEdge2))
@@ -296,6 +302,7 @@ class OrientDBLinkUDTsSourceSuite extends QueryTest
       oEdge1.setProperty("linkset", oRecordLazySet)
       oEdge1.setProperty("linkmap", oRecordLazyMap)
       oEdge1.setProperty("linkbag", oRidBag)
+      oEdge1.setProperty("link", oEdgeA)
 
       val oEdge2 = new MockEdge(Mockito.mock(classOf[OrientBaseGraph]),
         new ODocument())
@@ -319,6 +326,7 @@ class OrientDBLinkUDTsSourceSuite extends QueryTest
       oEdge2.setProperty("linkset", oRecordLazySet)
       oEdge2.setProperty("linkmap", oRecordLazyMap)
       oEdge2.setProperty("linkbag", oRidBag)
+      oEdge2.setProperty("link", oEdgeA)
 
       val mockOrientDBGraph = new MockOrientDBGraph(Map(params("edgetype") -> querySchema), null,
         List(oEdge1, oEdge2))
@@ -365,8 +373,9 @@ class OrientDBLinkUDTsSourceSuite extends QueryTest
     oVertex1.setProperty("linkset", oRecordLazySet)
     oVertex1.setProperty("linkmap", oRecordLazyMap)
     oVertex1.setProperty("linkbag", oRidBag)
+    oVertex1.setProperty("link", oVert0)
 
-    val expected1 = Row(LinkList(Array(oVert0.asInstanceOf[ORecord])), LinkSet(Array(oVert1.asInstanceOf[ORecord])))
+    val expected1 = Row(LinkList(Array(oVert0.asInstanceOf[ORecord])), LinkSet(Array(oVert1.asInstanceOf[ORecord])), Link(oVert0))
 
     val oVertex2 = new MockVertex(Mockito.mock(classOf[OrientBaseGraph]),
       new ODocument())
@@ -395,8 +404,9 @@ class OrientDBLinkUDTsSourceSuite extends QueryTest
     oVertex2.setProperty("linkset", oRecordLazySet)
     oVertex2.setProperty("linkmap", oRecordLazyMap)
     oVertex2.setProperty("linkbag", oRidBag)
+    oVertex2.setProperty("link", oVert0)
 
-    val expected2 = Row(LinkList(Array(oVert0.asInstanceOf[ORecord])), LinkSet(Array(oVert1.asInstanceOf[ORecord])))
+    val expected2 = Row(LinkList(Array(oVert0.asInstanceOf[ORecord])), LinkSet(Array(oVert1.asInstanceOf[ORecord])), Link(oVert0))
 
     val mockOrientDBGraph = new MockOrientDBGraph(Map(params("vertextype") -> TestUtils.testSchemaForLinkUDTs),
       List(oVertex1, oVertex2))
@@ -405,7 +415,7 @@ class OrientDBLinkUDTsSourceSuite extends QueryTest
     val relation = source.createRelation(sqlContext, params, TestUtils.testSchemaForLinkUDTs)
 
     val rdd = relation.asInstanceOf[PrunedFilteredScan]
-      .buildScan(Array("linklist", "linkset"), Array.empty[Filter])
+      .buildScan(Array("linklist", "linkset", "link"), Array.empty[Filter])
 
     val prunedExpectedValues = Array(expected1, expected2)
 
@@ -447,8 +457,9 @@ class OrientDBLinkUDTsSourceSuite extends QueryTest
     oEdge1.setProperty("linkset", oRecordLazySet)
     oEdge1.setProperty("linkmap", oRecordLazyMap)
     oEdge1.setProperty("linkbag", oRidBag)
+    oEdge1.setProperty("link", oEdgeA)
 
-    val expected1 = Row(LinkList(Array(oEdgeA.asInstanceOf[ORecord])), LinkSet(Array(oEdgeB.asInstanceOf[ORecord])))
+    val expected1 = Row(LinkList(Array(oEdgeA.asInstanceOf[ORecord])), LinkSet(Array(oEdgeB.asInstanceOf[ORecord])), Link(oEdgeA))
 
     val oEdge2 = new MockEdge(Mockito.mock(classOf[OrientBaseGraph]), new ODocument())
 
@@ -476,8 +487,9 @@ class OrientDBLinkUDTsSourceSuite extends QueryTest
     oEdge2.setProperty("linkset", oRecordLazySet)
     oEdge2.setProperty("linkmap", oRecordLazyMap)
     oEdge2.setProperty("linkbag", oRidBag)
+    oEdge2.setProperty("link", oEdgeA)
 
-    val expected2 = Row(LinkList(Array(oEdgeA.asInstanceOf[ORecord])), LinkSet(Array(oEdgeB.asInstanceOf[ORecord])))
+    val expected2 = Row(LinkList(Array(oEdgeA.asInstanceOf[ORecord])), LinkSet(Array(oEdgeB.asInstanceOf[ORecord])), Link(oEdgeA))
 
     val mockOrientDBGraph = new MockOrientDBGraph(Map(params("edgetype") -> TestUtils.testSchemaForLinkUDTs), null,
       List(oEdge1, oEdge2))
@@ -487,7 +499,7 @@ class OrientDBLinkUDTsSourceSuite extends QueryTest
     val relation = source.createRelation(sqlContext, params, TestUtils.testSchemaForLinkUDTs)
 
     val rdd = relation.asInstanceOf[PrunedFilteredScan]
-      .buildScan(Array("linklist", "linkset"), Array.empty[Filter])
+      .buildScan(Array("linklist", "linkset", "link"), Array.empty[Filter])
 
     val prunedExpectedValues = Array(expected1, expected2)
 
@@ -530,6 +542,7 @@ class OrientDBLinkUDTsSourceSuite extends QueryTest
     oVertex1.setProperty("linkset", oRecordLazySet)
     oVertex1.setProperty("linkmap", oRecordLazyMap)
     oVertex1.setProperty("linkbag", oRidBag)
+    oVertex1.setProperty("link", oVert0)
 
     val oVertex2 = new MockVertex(Mockito.mock(classOf[OrientBaseGraph]),
       new ODocument())
@@ -558,9 +571,10 @@ class OrientDBLinkUDTsSourceSuite extends QueryTest
     oVertex2.setProperty("linkset", oRecordLazySet)
     oVertex2.setProperty("linkmap", oRecordLazyMap)
     oVertex2.setProperty("linkbag", oRidBag)
+    oVertex2.setProperty("link", oVert0)
 
     val expected = Row(LinkList(Array(oVert0.asInstanceOf[ORecord])), LinkSet(Array(oVert1.asInstanceOf[ORecord])),
-      LinkBag(Array(oRid1, oRid2)))
+      LinkBag(Array(oRid1, oRid2)), Link(oVert0))
 
     val mockOrientDBGraph = new MockOrientDBGraph(Map(params("vertextype") -> TestUtils.testSchemaForLinkUDTs),
       List(oVertex1, oVertex2))
@@ -574,7 +588,7 @@ class OrientDBLinkUDTsSourceSuite extends QueryTest
     )
 
     val rdd = relation.asInstanceOf[PrunedFilteredScan]
-      .buildScan(Array("linklist", "linkset", "linkbag"), filters)
+      .buildScan(Array("linklist", "linkset", "linkbag", "link"), filters)
 
     assert(rdd.collect().contains(expected))
   }
@@ -614,6 +628,7 @@ class OrientDBLinkUDTsSourceSuite extends QueryTest
     oEdge1.setProperty("linkset", oRecordLazySet)
     oEdge1.setProperty("linkmap", oRecordLazyMap)
     oEdge1.setProperty("linkbag", oRidBag)
+    oEdge1.setProperty("link", oEdgeA)
 
     val oEdge2 = new MockEdge(Mockito.mock(classOf[OrientBaseGraph]), new ODocument())
 
@@ -641,9 +656,10 @@ class OrientDBLinkUDTsSourceSuite extends QueryTest
     oEdge2.setProperty("linkset", oRecordLazySet)
     oEdge2.setProperty("linkmap", oRecordLazyMap)
     oEdge2.setProperty("linkbag", oRidBag)
+    oEdge2.setProperty("link", oEdgeA)
 
     val expected = Row(LinkList(Array(oEdgeA.asInstanceOf[ORecord])), LinkSet(Array(oEdgeB.asInstanceOf[ORecord])),
-      LinkBag(Array(oRid1, oRid2)))
+      LinkBag(Array(oRid1, oRid2)), Link(oEdgeA))
 
     val mockOrientDBGraph = new MockOrientDBGraph(Map(params("edgetype") -> TestUtils.testSchemaForLinkUDTs), null,
       List(oEdge1, oEdge2))
@@ -658,7 +674,7 @@ class OrientDBLinkUDTsSourceSuite extends QueryTest
     )
 
     val rdd = relation.asInstanceOf[PrunedFilteredScan]
-      .buildScan(Array("linklist", "linkset", "linkbag"), filters)
+      .buildScan(Array("linklist", "linkset", "linkbag", "link"), filters)
 
     assert(rdd.collect().contains(expected))
   }
