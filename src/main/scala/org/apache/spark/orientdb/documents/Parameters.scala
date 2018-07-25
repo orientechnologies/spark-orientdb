@@ -75,5 +75,10 @@ private[orientdb] object Parameters {
       */
     def clusterNames: Option[List[String]] =
       parameters.get("clusters").map(_.split(",").toList)
+
+    def linkedType: Option[Map[String, String]] =
+      if (parameters.exists(paramPair => paramPair._2.contains("linkedType")))
+        Some(parameters.filter(paramPair => paramPair._2.contains("linkedType")))
+      else None
   }
 }

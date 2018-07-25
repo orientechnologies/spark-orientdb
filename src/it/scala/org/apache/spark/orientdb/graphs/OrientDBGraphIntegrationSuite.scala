@@ -1,11 +1,14 @@
 package org.apache.spark.orientdb.graphs
 
+import java.util
+
 import org.apache.spark.orientdb.TestUtils
 import org.apache.spark.orientdb.TestUtils._
-import org.apache.spark.orientdb.udts.{EmbeddedList, EmbeddedListType, LinkList, LinkListType}
+import org.apache.spark.orientdb.udts._
 import org.apache.spark.sql.types._
 import org.apache.spark.sql.{Row, SaveMode}
 import org.slf4j.LoggerFactory
+import com.orientechnologies.orient.core.metadata.schema.OType
 
 class OrientDBGraphIntegrationSuite extends IntegrationSuiteBase {
   private val test_vertex_type: String = "test_vertex_type__"
@@ -1452,6 +1455,56 @@ class OrientDBGraphIntegrationSuite extends IntegrationSuiteBase {
         } finally {
           edge_connection.dropEdgeType(edgeTableName)
         }
+      }
+    }
+  }
+
+  test("test rid based queries") {
+    val firstVertexTableName = s"first_rid_test_${scala.util.Random.nextInt(100)}"
+    val secondVertexTableName = s"second_rid_test_${scala.util.Random.nextInt(100)}"
+
+    try {
+      val firstVertexType = vertex_connection.createVertexType(firstVertexTableName)
+      firstVertexType.createProperty("firstProperty", OType.INTEGER)
+
+      val properties = new util.HashMap[String, Object]()
+      properties.put("firstProperty", new Integer(1))
+      val oFirstVertex = vertex_connection.addVertex("class:" + firstVertexTableName, properties)
+      val oRecordId = oFirstVertex.moveToClass(firstVertexTableName)
+
+      sqlContext.createDataFrame(sc.parallelize(Seq(Row("id1", Link(oRecordId)))),
+        StructType(Seq(StructField("id", StringType, false), StructField("secondProperty", LinkType, true))))
+        .write
+        .format("org.apache.spark.orientdb.graphs")
+        .option("dburl", ORIENTDB_CONNECTION_URL)
+        .option("user", ORIENTDB_USER)
+        .option("password", ORIENTDB_PASSWORD)
+        .option("vertextype", secondVertexTableName)
+        .option("secondProperty", s"linkedType-$firstVertexTableName")
+        .mode(SaveMode.ErrorIfExists)
+        .save()
+
+      val loadedDf = sqlContext.read
+        .format("org.apache.spark.orientdb.graphs")
+        .option("dburl", ORIENTDB_CONNECTION_URL)
+        .option("user", ORIENTDB_USER)
+        .option("password", ORIENTDB_PASSWORD)
+        .option("vertextype", secondVertexTableName)
+        .option("query", s"select @rid from $secondVertexTableName")
+        .schema(StructType(Seq(StructField("rid", LinkType, true))))
+        .load()
+
+      checkAnswer(
+        loadedDf.selectExpr("count(*)"),
+        Seq(Row(1))
+      )
+    } finally {
+      try {
+        orientDBGraphVertexWrapper.delete(secondVertexTableName, null)
+        vertex_connection.dropVertexType(secondVertexTableName)
+
+        orientDBGraphVertexWrapper.delete(firstVertexTableName, null)
+        vertex_connection.dropVertexType(firstVertexTableName)
       }
     }
   }

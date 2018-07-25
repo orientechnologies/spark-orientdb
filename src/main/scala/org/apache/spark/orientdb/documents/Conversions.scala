@@ -158,7 +158,7 @@ private[orientdb] object Conversions {
             })
           new LinkBag(elements)
         case _: LinkType =>
-          val element = field.asInstanceOf[ORecord]
+          val element = field.asInstanceOf[OIdentifiable].getRecord[ORecord]()
           new Link(element)
         case other => throw new UnsupportedOperationException(s"Unexpected DataType $dataType")
       }
@@ -262,6 +262,8 @@ private[orientdb] object Conversions {
       val oRidBag = new ORidBag()
       oRidBag.addAll(row.getAs[field.dataType.type ](field.name).asInstanceOf[LinkBag].elements.toSeq)
       oRidBag
+    case "link" =>
+      row.getAs[field.dataType.type](field.name).asInstanceOf[Link].element
     case _ => row.getAs[field.dataType.type](field.name)
   }
 }

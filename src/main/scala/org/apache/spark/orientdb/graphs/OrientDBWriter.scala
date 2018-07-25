@@ -1,6 +1,7 @@
 package org.apache.spark.orientdb.graphs
 
 import java.util
+import java.util.Collections
 
 import com.orientechnologies.orient.core.metadata.schema.OClass
 import com.orientechnologies.orient.core.sql.OCommandSQL
@@ -33,7 +34,13 @@ private[orientdb] class OrientDBVertexWriter(orientDBWrapper: OrientDBGraphVerte
     val createdVertexType = connector.createVertexType(vertexType)
 
     dfSchema.foreach(field => {
-      createdVertexType.createProperty(field.name, Conversions.sparkDTtoOrientDBDT(field.dataType))
+      if (params.linkedType.nonEmpty && params.linkedType.get.exists(linkType => linkType._1.equals(field.name))) {
+        createdVertexType.createProperty(field.name,
+          Conversions.sparkDTtoOrientDBDT(field.dataType),
+          connector.getVertexType(params.linkedType.get(field.name).split("-").last))
+      } else {
+        createdVertexType.createProperty(field.name, Conversions.sparkDTtoOrientDBDT(field.dataType))
+      }
 
       if (field.name == "id") {
         createdVertexType.createIndex(s"${vertexType}Idx", OClass.INDEX_TYPE.UNIQUE, field.name)
@@ -102,6 +109,7 @@ private[orientdb] class OrientDBVertexWriter(orientDBWrapper: OrientDBGraphVerte
 
             count = count + 1
           }
+          createdVertex.moveToClass(params.vertexType.get)
         }
         graphFactory.close()
       })
@@ -145,6 +153,11 @@ private[orientdb] class OrientDBEdgeWriter(orientDBWrapper: OrientDBGraphEdgeWra
     val createdEdgeType = connector.createEdgeType(edgeType)
     if (!params.lightWeightEdge) {
       dfSchema.foreach(field => {
+        if (params.linkedType.nonEmpty && params.linkedType.get.exists(linkType => linkType._1.equals(field.name))) {
+          createdEdgeType.createProperty(field.name,
+            Conversions.sparkDTtoOrientDBDT(field.dataType),
+            connector.getEdgeType(params.linkedType.get(field.name).split("-").last))
+        }
         createdEdgeType.createProperty(field.name, Conversions.sparkDTtoOrientDBDT(field.dataType))
       })
     }
@@ -253,7 +266,13 @@ private[orientdb] class OrientDBEdgeWriter(orientDBWrapper: OrientDBGraphEdgeWra
             in <- inVertex
             out <- outVertex
           } {
-            val createdEdge = connection.addEdge(null, in, out, params.edgeType.get)
+            var id: String = null
+            for (i <- fields.indices) {
+              if (fields(i).name == "id") {
+                id = Conversions.convertRowToGraph(row, i).toString
+              }
+            }
+            val createdEdge = connection.addEdge(id, in, out, params.edgeType.get)
             for (i <- fields.indices) {
               val sparkType = fields(i).dataType
               val orientDBType = Conversions.sparkDTtoOrientDBDT(sparkType)
