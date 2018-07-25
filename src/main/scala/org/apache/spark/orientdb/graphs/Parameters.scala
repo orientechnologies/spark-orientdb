@@ -65,5 +65,13 @@ private[orientdb] object Parameters {
       * cluster name in Orient DB
       */
     def cluster: Option[String] = parameters.get("cluster").orElse(None)
+
+    /**
+      * mention linked properties in the form "vertextype/edgetype" - "linkedType-linked vertextype/edgetype"
+      */
+    def linkedType: Option[Map[String, String]] =
+      if (parameters.exists(paramPair => paramPair._2.contains("linkedType")))
+        Some(parameters.filter(paramPair => paramPair._2.contains("linkedType")))
+      else None
   }
 }

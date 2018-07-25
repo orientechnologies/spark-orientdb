@@ -27,7 +27,12 @@ private[orientdb] class OrientDBWriter(orientDBWrapper: OrientDBDocumentWrapper,
     val createdClass = schema.createClass(classname)
 
     dfSchema.foreach(field => {
-      createdClass.createProperty(field.name, Conversions.sparkDTtoOrientDBDT(field.dataType))
+      if (params.linkedType.nonEmpty && params.linkedType.get.exists(linkType => linkType._1.equals(field.name))) {
+        createdClass.createProperty(field.name, Conversions.sparkDTtoOrientDBDT(field.dataType),
+          connector.getMetadata.getSchema.getClass(params.linkedType.get(field.name).split("-").last))
+      } else {
+        createdClass.createProperty(field.name, Conversions.sparkDTtoOrientDBDT(field.dataType))
+      }
     })
 
     if (clusters != null) {
