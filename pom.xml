@@ -9,7 +9,7 @@
     <version>1.4</version>
 
     <properties>
-        <scala.version>2.11.8</scala.version>
+        <scala.version>2.11.12</scala.version>
         <scala.binary.version>2.11</scala.binary.version>
         <spark.version>2.2.1</spark.version>
         <orientdb.graphdb.version>2.2.32</orientdb.graphdb.version>
