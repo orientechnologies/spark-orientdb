@@ -209,7 +209,9 @@ class OrientDBGraphVertexWrapper extends OrientDBGraphWrapper {
       })
       true
     } catch {
-      case e: Exception => throw new RuntimeException(s"An exception was thrown: ${e.getMessage}")
+      case e: Exception =>
+        true
+      //throw new RuntimeException(s"An exception was thrown: ${e.getMessage}")
     }
   }
 

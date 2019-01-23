@@ -132,7 +132,7 @@ class OrientDBIntegrationSuite extends IntegrationSuiteBase {
       .option("password", ORIENTDB_PASSWORD)
       .option("query", s"select testbool, count(*) from $test_table group by testbool")
       .schema(StructType(Array(StructField("testbool", BooleanType, true),
-        StructField("count", LongType, true))))
+        StructField("count(*)", LongType, true))))
       .load()
 
     checkAnswer(
@@ -165,7 +165,7 @@ class OrientDBIntegrationSuite extends IntegrationSuiteBase {
       .option("password", ORIENTDB_PASSWORD)
       .option("query", "select testbyte, testbool " +
         s"from $test_table where testbool = true" +
-        " and testdouble = 1234152.12312498 and testfloat = 1.0 and testint = 42")
+        " and testdouble = 1234152.12312498d and testfloat = 1.0 and testint = 42")
       .schema(StructType(Array(StructField("testbyte", ByteType, true),
         StructField("testbool", BooleanType, true))))
       .load()

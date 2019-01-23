@@ -226,7 +226,7 @@ object TestUtils {
       EmbeddedMap(Map(1 -> 4, 2 -> 1, 3 -> "enemy")))
   )
 
-  val oDocument1 = new ODocument()
+  val oDocument1 = new ODocument("link")
   oDocument1.field("f1", 1, OType.INTEGER)
   oDocument1.field("f2", 1.toByte, OType.BYTE)
   oDocument1.field("f3", true, OType.BOOLEAN)
@@ -242,7 +242,7 @@ object TestUtils {
   val oRid1 = new ORecordId()
   oRid1.fromString("#1:1")
 
-  val oDocument2 = new ODocument()
+  val oDocument2 = new ODocument("link")
   oDocument2.field("f1", 2, OType.INTEGER)
   oDocument2.field("f2", 1.toByte, OType.BYTE)
   oDocument2.field("f3", false, OType.BOOLEAN)
@@ -258,7 +258,7 @@ object TestUtils {
   val oRid2 = new ORecordId()
   oRid2.fromString("#2:2")
 
-  val oDocument3 = new ODocument()
+  val oDocument3 = new ODocument("link")
   oDocument3.field("f1", 3, OType.INTEGER)
   oDocument3.field("f2", 0.toByte, OType.BYTE)
   oDocument3.field("f3", null, OType.BOOLEAN)
@@ -274,7 +274,7 @@ object TestUtils {
   val oRid3 = new ORecordId()
   oRid3.fromString("#3:3")
 
-  val oDocument4 = new ODocument()
+  val oDocument4 = new ODocument("link")
   oDocument4.field("f1", 4, OType.INTEGER)
   oDocument4.field("f2", 0.toByte, OType.BYTE)
   oDocument4.field("f3", false, OType.BOOLEAN)
@@ -290,7 +290,7 @@ object TestUtils {
   val oRid4 = new ORecordId()
   oRid4.fromString("#4:4")
 
-  val oDocument5 = new ODocument()
+  val oDocument5 = new ODocument("link")
   oDocument5.field("f1", null, OType.INTEGER)
   oDocument5.field("f2", null, OType.BYTE)
   oDocument5.field("f3", null, OType.BOOLEAN)
@@ -322,22 +322,22 @@ object TestUtils {
     Row(5, LinkList(Array(oDocument5)), LinkSet(Array(oDocument5)), LinkMap(Map("1" -> oDocument5)), LinkBag(Array(oRid5)), Link(oDocument5))
   )
 
-  val oDocument6 = new ODocument()
+  val oDocument6 = new ODocument("link")
   oDocument6.field("src", 1, OType.INTEGER)
   oDocument6.field("dst", 2, OType.INTEGER)
   oDocument6.field("relationship", "friends", OType.STRING)
 
-  val oDocument7 = new ODocument()
+  val oDocument7 = new ODocument("link")
   oDocument7.field("src", 2, OType.INTEGER)
   oDocument7.field("dst", 3, OType.INTEGER)
   oDocument7.field("relationship", "enemy", OType.STRING)
 
-  val oDocument8 = new ODocument()
+  val oDocument8 = new ODocument("link")
   oDocument8.field("src", 3, OType.INTEGER)
   oDocument8.field("dst", 4, OType.INTEGER)
   oDocument8.field("relationship", "friends", OType.STRING)
 
-  val oDocument9 = new ODocument()
+  val oDocument9 = new ODocument("link")
   oDocument9.field("src", 4, OType.INTEGER)
   oDocument9.field("dst", 1, OType.INTEGER)
   oDocument9.field("relationship", "enemy", OType.STRING)

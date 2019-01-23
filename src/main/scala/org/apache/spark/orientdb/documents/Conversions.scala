@@ -2,6 +2,7 @@ package org.apache.spark.orientdb.documents
 
 import java.sql.{Date, Timestamp}
 import java.text.SimpleDateFormat
+import java.util
 import java.util.{Locale, Map}
 import java.util.function.Consumer
 
@@ -94,7 +95,7 @@ private[orientdb] object Conversions {
         case TimestampType => new Timestamp(dateFormat.parse(field.toString).getTime)
         case _: EmbeddedListType =>
           var elements = Array[Any]()
-          field.asInstanceOf[OTrackedList[Any]].forEach(new Consumer[Any] {
+          field.asInstanceOf[util.ArrayList[Any]].forEach(new Consumer[Any] {
             override def accept(t: Any): Unit = elements :+= t
           })
           new EmbeddedList(elements)

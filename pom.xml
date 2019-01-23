@@ -12,7 +12,7 @@
         <scala.version>2.11.12</scala.version>
         <scala.binary.version>2.11</scala.binary.version>
         <spark.version>2.2.1</spark.version>
-        <orientdb.graphdb.version>2.2.32</orientdb.graphdb.version>
+        <orientdb.graphdb.version>3.0.13</orientdb.graphdb.version>
     </properties>
 
     <repositories>

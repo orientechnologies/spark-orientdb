@@ -1,6 +1,6 @@
 package org.apache.spark.orientdb.documents
 
-import com.orientechnologies.orient.core.db.document.ODatabaseDocumentTx
+import com.orientechnologies.orient.core.db.document.ODatabaseDocument
 import org.apache.spark.SparkContext
 import org.apache.spark.orientdb.QueryTest
 import org.apache.spark.sql.types.StructType
@@ -25,7 +25,7 @@ trait IntegrationSuiteBase
 
   protected var sc: SparkContext = _
   protected var sqlContext: SQLContext = _
-  protected var connection: ODatabaseDocumentTx = _
+  protected var connection: ODatabaseDocument = _
 
   protected val orientDBWrapper = DefaultOrientDBDocumentWrapper
 
