@@ -3,7 +3,6 @@ package org.apache.spark.orientdb.graphs
 import java.util
 
 import org.apache.spark.orientdb.TestUtils
-import org.apache.spark.orientdb.TestUtils._
 import org.apache.spark.orientdb.udts._
 import org.apache.spark.sql.types._
 import org.apache.spark.sql.{Row, SaveMode}
@@ -11,12 +10,12 @@ import org.slf4j.LoggerFactory
 import com.orientechnologies.orient.core.metadata.schema.OType
 
 class OrientDBGraphIntegrationSuite extends IntegrationSuiteBase {
-  private val test_vertex_type: String = "test_vertex_type__"
-  private val test_edge_type: String = "test_edge_type__"
-  private val test_vertex_type2: String = "test_vertex_type2__"
-  private val test_edge_type2: String = "test_edge_type2__"
-  private val test_vertex_type3: String = "test_vertex_type3__"
-  private val test_edge_type3: String = "test_edge_type3__"
+  private val test_vertex_type: String = "test__vertex__type___"
+  private val test_edge_type: String = "test__edge__type___"
+  private val test_vertex_type2: String = "test__vertex__type2___"
+  private val test_edge_type2: String = "test__edge__type2___"
+  private val test_vertex_type3: String = "test__vertex__type3___"
+  private val test_edge_type3: String = "test__edge__type3___"
 
   private val LOG = LoggerFactory.getLogger(getClass)
 

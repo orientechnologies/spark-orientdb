@@ -1,8 +1,13 @@
 package org.apache.spark.orientdb.documents
 
-import com.orientechnologies.orient.core.db.document.ODatabaseDocumentTx
+import java.util
+import java.util.function.Consumer
+
+import com.orientechnologies.orient.core.db.document.ODatabaseDocument
 import com.orientechnologies.orient.core.metadata.schema.OType
+import com.orientechnologies.orient.core.record.OElement
 import com.orientechnologies.orient.core.record.impl.ODocument
+import com.orientechnologies.orient.core.sql.executor.OResult
 import com.orientechnologies.orient.core.sql.query.OSQLSynchQuery
 import com.orientechnologies.orient.core.tx.OTransaction.TXTYPE
 import org.apache.spark.orientdb.documents.Parameters.MergedParameters
@@ -13,7 +18,7 @@ import scala.collection.JavaConversions._
 
 class OrientDBDocumentWrapper extends Serializable {
   private var connectionPool: Option[OrientDBClientFactory] = None
-  private var connection: ODatabaseDocumentTx = _
+  private var connection: ODatabaseDocument = _
 
   def openTransaction(): Unit = {
     connection.begin(TXTYPE.OPTIMISTIC)
@@ -31,7 +36,7 @@ class OrientDBDocumentWrapper extends Serializable {
     * Get instance of Database connection
     * @return Database connection instance
     */
-  def getConnection(params: MergedParameters): ODatabaseDocumentTx = {
+  def getConnection(params: MergedParameters): ODatabaseDocument = {
     try {
       if (connectionPool.isEmpty) {
         connectionPool = Some(new OrientDBClientFactory(new OrientDBCredentials {
@@ -78,13 +83,17 @@ class OrientDBDocumentWrapper extends Serializable {
     */
   def read(clusters: List[String], classname: String, requiredColumns: Array[String],
            filters: String, query: String = null): List[ODocument] = {
-    var documents: java.util.List[ODocument] = null
+    var documents: java.util.List[ODocument] = new util.ArrayList[ODocument]()
     val columns = requiredColumns.mkString(", ")
 
     if (query == null) {
-      documents = connection.query(
-        new OSQLSynchQuery[ODocument]
-        (s"select $columns from $classname $filters"))
+      val oResultSet = connection.query(s"select $columns from $classname $filters")
+      oResultSet.map(_.toElement).foreach {
+        case oDocument: ODocument =>
+          documents.add(oDocument)
+        case _ =>
+          throw new RuntimeException("Result is not of type ODocument")
+      }
     } else {
       var queryStr = ""
 
@@ -115,7 +124,13 @@ class OrientDBDocumentWrapper extends Serializable {
           queryStr = s"$query $filters"
         }
       } else queryStr = query
-      documents = connection.query(new OSQLSynchQuery[ODocument](queryStr))
+      val oResultSet = connection.query(queryStr)
+      oResultSet.map(_.toElement).foreach {
+          case oDocument: ODocument =>
+            documents.add(oDocument)
+          case _ =>
+            throw new RuntimeException("Result is not of type ODocument")
+      }
     }
 
     documents.toList
@@ -168,8 +183,15 @@ class OrientDBDocumentWrapper extends Serializable {
       count += 1
     })
 
-    val documentsToBeUpdated: java.util.List[ODocument] = connection.query(
-      new OSQLSynchQuery[ODocument]("select * from " + classname + " where " + filterStr))
+    val documentsToBeUpdated: java.util.List[ODocument] = new util.ArrayList[ODocument]()
+    val oResultSet = connection.query("select * from " + classname + " where " + filterStr)
+
+    oResultSet.map(_.toElement).foreach {
+      case oDocument: ODocument =>
+        documentsToBeUpdated.add(oDocument)
+      case _ =>
+        throw new RuntimeException("Result is not of type ODocument")
+    }
 
     try {
       openTransaction()
@@ -214,13 +236,23 @@ class OrientDBDocumentWrapper extends Serializable {
         })
       }
 
-      var documentsToBeDeleted: java.util.List[ODocument] = null
+      val documentsToBeDeleted: java.util.List[ODocument] = new util.ArrayList[ODocument]()
       if (filterStr != "") {
-        documentsToBeDeleted = connection.query(
-          new OSQLSynchQuery[ODocument]("select * from " + classname + " where " + filterStr))
+        val oResultSet = connection.query("select * from " + classname + " where " + filterStr)
+        oResultSet.map(_.toElement).foreach {
+          case oDocument: ODocument =>
+            documentsToBeDeleted.add(oDocument)
+          case _ =>
+            throw new RuntimeException("Result is not of type ODocument")
+        }
       } else {
-        documentsToBeDeleted = connection.query(
-          new OSQLSynchQuery[ODocument]("select * from " + classname))
+        val oResultSet = connection.query("select * from " + classname)
+        oResultSet.map(_.toElement).foreach {
+          case oDocument: ODocument =>
+            documentsToBeDeleted.add(oDocument)
+          case _ =>
+            throw new RuntimeException("Result is not of type ODocument")
+        }
       }
 
       openTransaction()

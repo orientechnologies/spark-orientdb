@@ -1,11 +1,10 @@
 package org.apache.spark.orientdb.graphs
 
 import java.util
-import java.util.Collections
 
 import com.orientechnologies.orient.core.metadata.schema.OClass
 import com.orientechnologies.orient.core.sql.OCommandSQL
-import com.tinkerpop.blueprints.{Edge, Vertex}
+import com.tinkerpop.blueprints.Vertex
 import com.tinkerpop.blueprints.impls.orient.{OrientGraphFactory, OrientGraphNoTx}
 import org.apache.spark.orientdb.documents.Conversions
 import org.apache.spark.orientdb.graphs.Parameters.MergedParameters

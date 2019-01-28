@@ -1,6 +1,6 @@
 package org.apache.spark.orientdb.documents
 
-import com.orientechnologies.orient.core.db.document.ODatabaseDocumentTx
+import com.orientechnologies.orient.core.db.document.{ODatabaseDocument, ODatabaseDocumentPool, ODatabaseDocumentTxPooled}
 import Parameters.MergedParameters
 import org.apache.spark.sql.{DataFrame, SaveMode}
 import org.slf4j.LoggerFactory
@@ -62,7 +62,7 @@ private[orientdb] class OrientDBWriter(orientDBWrapper: OrientDBDocumentWrapper,
     }
   }
 
-  private def doOrientDBLoad(connection: ODatabaseDocumentTx,
+  private def doOrientDBLoad(connection: ODatabaseDocument,
                              data: DataFrame,
                              params: MergedParameters): Unit = {
     // create class if not exists
@@ -89,8 +89,10 @@ private[orientdb] class OrientDBWriter(orientDBWrapper: OrientDBDocumentWrapper,
     // load data into Orient DB
     try {
       data.foreachPartition(rows => {
-        val connection = new ODatabaseDocumentTx(params.dbUrl.get)
-        connection.open(params.credentials.get._1, params.credentials.get._2)
+        val ownerPool = new ODatabaseDocumentPool(params.dbUrl.get,
+          params.credentials.get._1, params.credentials.get._2)
+        val connection = new ODatabaseDocumentTxPooled(ownerPool, params.dbUrl.get,
+          params.credentials.get._1, params.credentials.get._2)
         val rowsList = rows.toList
         val rowsPerCluster = rowsList.length % clusters.get.length match {
           case 0 => rowsList.length / clusters.get.length
