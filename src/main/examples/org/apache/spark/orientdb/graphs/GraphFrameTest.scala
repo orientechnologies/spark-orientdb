@@ -1,15 +1,16 @@
 package org.apache.spark.orientdb.graphs
 
 import org.apache.spark.{SparkConf, SparkContext}
-import org.apache.spark.sql.{Row, SQLContext, SaveMode}
+import org.apache.spark.sql.{Row, SQLContext, SaveMode, SparkSession}
 import org.apache.spark.sql.types.{StringType, StructField, StructType}
 import org.graphframes.GraphFrame
 
 object GraphFrameTest extends App {
-  val conf = new SparkConf().setAppName("MainApplication").setMaster("local[*]")
-  val sc = new SparkContext(conf)
+  val spark = SparkSession.builder().appName("MainApplication").master("local[*]").getOrCreate()
+
+  val sc = spark.sparkContext
   sc.setLogLevel("WARN")
-  val sqlContext = new SQLContext(sc)
+  val sqlContext = spark.sqlContext
 
   import sqlContext.implicits._
   val df = sc.parallelize(Array(1, 2, 3, 4, 5)).toDF("id")

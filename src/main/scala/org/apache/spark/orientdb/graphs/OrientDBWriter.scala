@@ -8,7 +8,7 @@ import com.tinkerpop.blueprints.Vertex
 import com.tinkerpop.blueprints.impls.orient.{OrientGraphFactory, OrientGraphNoTx}
 import org.apache.spark.orientdb.documents.Conversions
 import org.apache.spark.orientdb.graphs.Parameters.MergedParameters
-import org.apache.spark.sql.{DataFrame, SaveMode}
+import org.apache.spark.sql.{DataFrame, Row, SaveMode}
 import org.slf4j.LoggerFactory
 
 import scala.collection.JavaConversions._
@@ -76,7 +76,7 @@ private[orientdb] class OrientDBVertexWriter(orientDBWrapper: OrientDBGraphVerte
     }
 
     try {
-      data.foreachPartition(rows => {
+      data.foreachPartition((rows: Iterator[Row]) => {
         val graphFactory = new OrientGraphFactory(params.dbUrl.get,
                                         params.credentials.get._1,
                                         params.credentials.get._2)
@@ -202,7 +202,7 @@ private[orientdb] class OrientDBEdgeWriter(orientDBWrapper: OrientDBGraphEdgeWra
     }
 
     try {
-      data.foreachPartition(rows => {
+      data.foreachPartition((rows: Iterator[Row]) => {
         val graphFactory = new OrientGraphFactory(params.dbUrl.get,
                                                   params.credentials.get._1,
                                                   params.credentials.get._2)

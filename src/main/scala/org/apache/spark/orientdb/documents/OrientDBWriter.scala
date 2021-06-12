@@ -2,7 +2,7 @@ package org.apache.spark.orientdb.documents
 
 import com.orientechnologies.orient.core.db.document.{ODatabaseDocument, ODatabaseDocumentPool, ODatabaseDocumentTxPooled}
 import Parameters.MergedParameters
-import org.apache.spark.sql.{DataFrame, SaveMode}
+import org.apache.spark.sql.{DataFrame, Row, SaveMode}
 import org.slf4j.LoggerFactory
 
 private[orientdb] class OrientDBWriter(orientDBWrapper: OrientDBDocumentWrapper,
@@ -88,7 +88,7 @@ private[orientdb] class OrientDBWriter(orientDBWrapper: OrientDBDocumentWrapper,
     // Todo use future
     // load data into Orient DB
     try {
-      data.foreachPartition(rows => {
+      data.foreachPartition((rows: Iterator[Row]) => {
         val ownerPool = new ODatabaseDocumentPool(params.dbUrl.get,
           params.credentials.get._1, params.credentials.get._2)
         val connection = new ODatabaseDocumentTxPooled(ownerPool, params.dbUrl.get,

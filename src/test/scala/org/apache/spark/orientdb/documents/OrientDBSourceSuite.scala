@@ -4,7 +4,7 @@ import com.orientechnologies.orient.core.metadata.schema.OType
 import com.orientechnologies.orient.core.record.impl.ODocument
 import org.apache.spark.{SparkConf, SparkContext}
 import org.apache.spark.orientdb.{QueryTest, TestUtils}
-import org.apache.spark.sql.{DataFrame, Row, SQLContext}
+import org.apache.spark.sql.{DataFrame, Row, SQLContext, SparkSession}
 import org.apache.spark.sql.sources.{EqualTo, Filter, PrunedFilteredScan}
 import org.apache.spark.sql.types.{BooleanType, ByteType, StructField, StructType}
 import org.mockito.Mockito
@@ -14,23 +14,25 @@ class OrientDBSourceSuite extends QueryTest
         with BeforeAndAfterAll
         with BeforeAndAfterEach {
   private var sc: SparkContext = _
+  private var spark: SparkSession = _
   private var sqlContext: SQLContext = _
   private var mockOrientDBClient: OrientDBClientFactory = _
   private var expectedDataDf: DataFrame = _
 
   override def beforeAll(): Unit = {
-    val conf = new SparkConf().setAppName("OrientDBSourceSuite")
-      .setMaster("local[*]")
-    sc = new SparkContext(conf)
+    spark = SparkSession.builder().appName("OrientDBLinkUDTsSourceSuite")
+      .master("local[*]")
+      .getOrCreate()
+    sc = spark.sparkContext;
   }
 
   override def afterAll(): Unit = {
-    if (sc != null)
-      sc.stop()
+    if (spark != null)
+      spark.close()
   }
 
   override def beforeEach(): Unit = {
-    sqlContext = new SQLContext(sc)
+    sqlContext = spark.sqlContext
     mockOrientDBClient = Mockito.mock(classOf[OrientDBClientFactory],
       Mockito.RETURNS_SMART_NULLS)
     expectedDataDf = sqlContext.createDataFrame(sc.parallelize(TestUtils.expectedData),
