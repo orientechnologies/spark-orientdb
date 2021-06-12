@@ -5,11 +5,11 @@ import com.orientechnologies.orient.core.metadata.schema.OType
 import com.orientechnologies.orient.core.record.impl.ODocument
 import com.tinkerpop.blueprints.impls.orient.OrientBaseGraph
 import org.apache.spark.orientdb.udts.{EmbeddedList, EmbeddedMapType, EmbeddedSet, EmbeddedSetType}
-import org.apache.spark.{SparkConf, SparkContext}
+import org.apache.spark.SparkContext
 import org.apache.spark.orientdb.{QueryTest, TestUtils}
 import org.apache.spark.sql.sources.{EqualTo, Filter, PrunedFilteredScan}
 import org.apache.spark.sql.types.{StructField, StructType}
-import org.apache.spark.sql.{DataFrame, Row, SQLContext}
+import org.apache.spark.sql.{DataFrame, Row, SQLContext, SparkSession}
 import org.mockito.Mockito
 import org.scalatest.{BeforeAndAfterAll, BeforeAndAfterEach}
 
@@ -17,25 +17,27 @@ class OrientDBEmbeddedUDTsSourceSuite extends QueryTest
         with BeforeAndAfterAll
         with BeforeAndAfterEach {
   private var sc: SparkContext = _
+  private var spark: SparkSession = _
   private var sqlContext: SQLContext = _
   private var mockOrientDBClient: OrientDBClientFactory = _
   private var expectedDataDfVertices: DataFrame = _
   private var expectedDataDfEdges: DataFrame = _
 
   override protected def beforeAll(): Unit = {
-    val conf = new SparkConf().setAppName("OrientDBEmbeddedUDTsSourceSuite")
-                .setMaster("local[*]")
-    sc = new SparkContext(conf)
+    spark = SparkSession.builder().appName("OrientDBLinkUDTsSourceSuite")
+      .master("local[*]")
+      .getOrCreate()
+    sc = spark.sparkContext
   }
 
   override protected def afterAll(): Unit = {
-    if (sc != null) {
-      sc.stop()
+    if (spark != null) {
+      spark.close()
     }
   }
 
   override protected def beforeEach(): Unit = {
-    sqlContext = new SQLContext(sc)
+    sqlContext = spark.sqlContext
     mockOrientDBClient = Mockito.mock(classOf[OrientDBClientFactory],
       Mockito.RETURNS_SMART_NULLS)
     expectedDataDfVertices = sqlContext.createDataFrame(

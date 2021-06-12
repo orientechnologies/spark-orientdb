@@ -1,7 +1,6 @@
 package org.apache.spark.orientdb.graphs
 
 import java.lang
-
 import com.orientechnologies.orient.core.db.record.ridbag.ORidBag
 import com.orientechnologies.orient.core.db.record.{ORecordLazyList, ORecordLazyMap, ORecordLazySet}
 import com.orientechnologies.orient.core.id.ORecordId
@@ -14,34 +13,37 @@ import org.apache.spark.{SparkConf, SparkContext}
 import org.apache.spark.orientdb.{QueryTest, TestUtils}
 import org.apache.spark.sql.sources.{EqualTo, Filter, PrunedFilteredScan}
 import org.apache.spark.sql.types.{StructField, StructType}
-import org.apache.spark.sql.{DataFrame, Row, SQLContext}
+import org.apache.spark.sql.{DataFrame, Row, SQLContext, SparkSession}
 import org.mockito.Mockito
 import org.scalatest.{BeforeAndAfterAll, BeforeAndAfterEach}
+
 import java.util
 
 class OrientDBLinkUDTsSourceSuite extends QueryTest
-        with BeforeAndAfterAll
-        with BeforeAndAfterEach {
+  with BeforeAndAfterAll
+  with BeforeAndAfterEach {
   private var sc: SparkContext = _
+  private var spark: SparkSession = _
   private var sqlContext: SQLContext = _
   private var mockOrientDBClient: OrientDBClientFactory = _
   private var expectedDataDfVertices: DataFrame = _
   private var expectedDataDfEdges: DataFrame = _
 
   override protected def beforeAll(): Unit = {
-    val conf = new SparkConf().setAppName("OrientDBLinkUDTsSourceSuite")
-                .setMaster("local[*]")
-    sc = new SparkContext(conf)
+    spark = SparkSession.builder().appName("OrientDBLinkUDTsSourceSuite")
+      .master("local[*]")
+      .getOrCreate()
+    sc = spark.sparkContext;
   }
 
   override protected def afterAll(): Unit = {
-    if (sc != null) {
-      sc.stop()
+    if (spark != null) {
+      spark.close()
     }
   }
 
   override protected def beforeEach(): Unit = {
-    sqlContext = new SQLContext(sc)
+    sqlContext = spark.sqlContext
     mockOrientDBClient = Mockito.mock(classOf[OrientDBClientFactory],
       Mockito.RETURNS_SMART_NULLS)
     expectedDataDfVertices = sqlContext.createDataFrame(
@@ -86,7 +88,7 @@ class OrientDBLinkUDTsSourceSuite extends QueryTest
       var oRid2 = new ORecordId()
       oRid2.fromString("#2:2")
 
-      var oRecordLazySet = new  ORecordLazySet(iSourceRecord)
+      var oRecordLazySet = new ORecordLazySet(iSourceRecord)
       oRecordLazySet.add(oVert1)
       var oRecordLazyMap = new ORecordLazyMap(iSourceRecord)
       oRecordLazyMap.put("1", oVert2)
@@ -110,7 +112,7 @@ class OrientDBLinkUDTsSourceSuite extends QueryTest
       oRid2 = new ORecordId()
       oRid2.fromString("#4:4")
 
-      oRecordLazySet = new  ORecordLazySet(iSourceRecord)
+      oRecordLazySet = new ORecordLazySet(iSourceRecord)
       oRecordLazySet.add(oVert1)
       oRecordLazyMap = new ORecordLazyMap(iSourceRecord)
       oRecordLazyMap.put("1", oVert2)
@@ -152,7 +154,7 @@ class OrientDBLinkUDTsSourceSuite extends QueryTest
       var oRid2 = new ORecordId()
       oRid2.fromString("#2:2")
 
-      var oRecordLazySet = new  ORecordLazySet(iSourceRecord)
+      var oRecordLazySet = new ORecordLazySet(iSourceRecord)
       oRecordLazySet.add(oVert1)
       var oRecordLazyMap = new ORecordLazyMap(iSourceRecord)
       oRecordLazyMap.put("1", oVert2)
@@ -176,7 +178,7 @@ class OrientDBLinkUDTsSourceSuite extends QueryTest
       oRid2 = new ORecordId()
       oRid2.fromString("#4:4")
 
-      oRecordLazySet = new  ORecordLazySet(iSourceRecord)
+      oRecordLazySet = new ORecordLazySet(iSourceRecord)
       oRecordLazySet.add(oVert1)
       oRecordLazyMap = new ORecordLazyMap(iSourceRecord)
       oRecordLazyMap.put("1", oVert2)

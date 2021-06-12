@@ -9,17 +9,24 @@
     <version>1.4</version>
 
     <properties>
-        <scala.version>2.11.12</scala.version>
-        <scala.binary.version>2.11</scala.binary.version>
-        <spark.version>2.2.1</spark.version>
+        <scala.version>2.12.12</scala.version>
+        <scala.binary.version>2.12</scala.binary.version>
+        <spark.version>3.1.1</spark.version>
         <orientdb.graphdb.version>3.0.13</orientdb.graphdb.version>
+        <maven.compiler.source>1.8</maven.compiler.source>
+        <maven.compiler.target>1.8</maven.compiler.target>
     </properties>
 
     <repositories>
         <repository>
             <id>SparkPackagesRepo</id>
             <name>SparkPackagesRepo</name>
-            <url>http://dl.bintray.com/spark-packages/maven</url>
+            <url>https://dl.bintray.com/spark-packages/maven</url>
+        </repository>
+        <repository>
+            <id>bintray</id>
+            <name>bintray.com</name>
+            <url>https://repos.spark-packages.org</url>
         </repository>
     </repositories>
 
@@ -66,17 +73,21 @@
             <artifactId>spark-graphx_${scala.binary.version}</artifactId>
             <version>${spark.version}</version>
         </dependency>
+        <!-- https://mvnrepository.com/artifact/graphframes/graphframes -->
         <dependency>
             <groupId>graphframes</groupId>
             <artifactId>graphframes</artifactId>
-            <version>0.5.0-spark2.1-s_${scala.binary.version}</version>
+            <version>0.8.1-spark3.0-s_${scala.binary.version}</version>
         </dependency>
+
     </dependencies>
 
     <distributionManagement>
         <repository>
             <id>bintray-sbcd90-spark-orientdb</id>
-            <url>https://api.bintray.com/maven/sbcd90/org.apache.spark/spark-orientdb-${spark.version}_${scala.binary.version}/;publish=1</url>
+            <url>
+                https://api.bintray.com/maven/sbcd90/org.apache.spark/spark-orientdb-${spark.version}_${scala.binary.version}/;publish=1
+            </url>
         </repository>
     </distributionManagement>
 
@@ -86,10 +97,6 @@
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
                 <version>3.5.1</version>
-                <configuration>
-                    <source>1.5</source>
-                    <target>1.5</target>
-                </configuration>
             </plugin>
             <plugin>
                 <groupId>org.scala-tools</groupId>

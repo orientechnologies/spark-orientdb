@@ -2,8 +2,7 @@ package org.apache.spark.orientdb.documents
 
 import com.orientechnologies.orient.core.metadata.schema.OType
 import com.orientechnologies.orient.core.record.impl.ODocument
-import org.apache.spark.{SparkConf, SparkContext}
-import org.apache.spark.sql.{Row, SQLContext}
+import org.apache.spark.sql.{Row, SparkSession}
 import org.apache.spark.sql.types.{IntegerType, StringType, StructField, StructType}
 import org.scalatest.FunSuite
 
@@ -19,18 +18,18 @@ class ConversionsSuite extends FunSuite {
     expectedData.field("key", 1, OType.INTEGER)
     expectedData.field("value", "Spark datasource for Orient DB", OType.STRING)
 
-    val conf = new SparkConf().setAppName("ConversionsSuite").setMaster("local[*]")
-    val sc = new SparkContext(conf)
-    val sqlContext = new SQLContext(sc)
+    val spark = SparkSession.builder().appName("OrientDBLinkUDTsSourceSuite")
+      .master("local[*]")
+      .getOrCreate()
 
-    val rows = sqlContext.createDataFrame(sc.parallelize(Seq(Row(1, "Spark datasource for Orient DB"))),
+    val rows = spark.sqlContext.createDataFrame(spark.sparkContext.parallelize(Seq(Row(1, "Spark datasource for Orient DB"))),
       StructType(Array(StructField("key", IntegerType, true),
         StructField("value", StringType, true)))).collect()
 
     val actualData = Conversions.convertRowsToODocuments(rows(0))
     assert(expectedData.field[Int]("key") == actualData.field[Int]("key"))
     assert(expectedData.field[String]("value") == actualData.field[String]("value"))
-    sc.stop()
+    spark.close()
   }
 
   test("Convert OrientDB ODocument to Spark Row") {
